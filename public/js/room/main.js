@@ -33,7 +33,6 @@ class RoomPage {
       appendLog(type, `step=${data.step}, status=${data.status}`);
       //applyBoard(data, this.role, this.btnMove);
       applyBoard(data, this.role, this.btnMove, this.id, this.token);
-});
     });
   }
 
