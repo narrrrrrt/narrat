@@ -46,7 +46,9 @@ class RoomPage {
       this.role = res.role;
     }
     if (res.step && res.board && res.status) {
-      applyBoard(res, this.role, this.btnMove);
+      //applyBoard(res, this.role, this.btnMove);
+      applyBoard(data, role, btnMove, roomId, token)
+}
     }
   }
 
@@ -56,7 +58,8 @@ class RoomPage {
     const y = parseInt(this.selY.value);
     const res = await move(this.id, this.token, x, y);
     if (res.step && res.board && res.status) {
-      applyBoard(res, this.role, this.btnMove);
+      //applyBoard(res, this.role, this.btnMove);
+      const res = await move(this.id, this.token, x, y);
     }
   }
 

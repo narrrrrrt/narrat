@@ -1,3 +1,4 @@
+import { move } from "./api.js";
 export function applyBoard(data, role, btnMove, roomId, token) {
   const { step, board, status } = data;
 
@@ -40,13 +41,8 @@ export function renderBoard(board, status, step, role, roomId, token) {
                 return;
               }
               try {
-                const res = await fetch(`/${roomId}/move`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ x: x + 1, y: y + 1, token })
-                });
-                const json = await res.json();
-                console.log("MOVE response:", json);
+                const res = await move(roomId, token, x + 1, y + 1);
+                console.log("MOVE response:", res);
               } catch (err) {
                 console.error("MOVE failed:", err);
               }
