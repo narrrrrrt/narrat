@@ -45,12 +45,12 @@ class RoomPage {
     if (res.role) {
       this.role = res.role;
     }
-    if (res.step && res.board && res.status) {
-      //applyBoard(res, this.role, this.btnMove);
-      applyBoard(data, role, btnMove, roomId, token);
+    if (!res.ok) {
+      appendLog("ERROR", res.error || "join failed");
     }
+    // 盤面更新は SSE に任せる
   }
-
+  
   async handleMove() {
     if (!this.token) return;
     const x = parseInt(this.selX.value, 10);
