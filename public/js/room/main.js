@@ -48,19 +48,18 @@ class RoomPage {
     if (res.step && res.board && res.status) {
       //applyBoard(res, this.role, this.btnMove);
       applyBoard(data, role, btnMove, roomId, token)
-}
     }
   }
 
   async handleMove() {
     if (!this.token) return;
-    const x = parseInt(this.selX.value);
-    const y = parseInt(this.selY.value);
+    const x = parseInt(this.selX.value, 10);
+    const y = parseInt(this.selY.value, 10);
     const res = await move(this.id, this.token, x, y);
-    if (res.step && res.board && res.status) {
-      //applyBoard(res, this.role, this.btnMove);
-      const res = await move(this.id, this.token, x, y);
+    if (!res.ok) {
+      appendLog("ERROR", res.error || "move failed");
     }
+    // 盤面更新は SSE で反映
   }
 
   async handleLeave() {
