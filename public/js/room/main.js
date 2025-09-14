@@ -31,7 +31,9 @@ class RoomPage {
 
     startSSE(this.id, (type, data) => {
       appendLog(type, `step=${data.step}, status=${data.status}`);
-      applyBoard(data, this.role, this.btnMove);
+      //applyBoard(data, this.role, this.btnMove);
+      applyBoard(data, this.role, this.btnMove, this.id, this.token);
+});
     });
   }
 
