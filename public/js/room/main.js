@@ -47,7 +47,7 @@ class RoomPage {
     }
     if (res.step && res.board && res.status) {
       //applyBoard(res, this.role, this.btnMove);
-      applyBoard(data, role, btnMove, roomId, token)
+      applyBoard(data, role, btnMove, roomId, token);
     }
   }
 
