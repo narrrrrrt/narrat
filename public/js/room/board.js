@@ -1,11 +1,18 @@
 export function applyBoard(data, role, btnMove) {
   const { step, board, status } = data;
 
+  // 自分の番以外は MOVE ボタンを無効化
   btnMove.disabled = (role !== status);
 
   let displayBoard = board;
-  if (Array.isArray(board)) {
-    displayBoard = board.map(row =>
+
+  // ★ 追加: 一次元文字列配列を二次元配列に変換
+  if (Array.isArray(board) && typeof board[0] === "string") {
+    displayBoard = board.map(row => row.split(""));
+  }
+
+  if (Array.isArray(displayBoard)) {
+    displayBoard = displayBoard.map(row =>
       row.map(cell =>
         (cell === "*" && role !== status) ? "-" : cell
       )
