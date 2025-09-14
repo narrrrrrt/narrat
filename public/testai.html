@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Workers AI Chat</title>
+</head>
+<body>
+  <h1>Workers AI Chat</h1>
+  <textarea id="prompt" rows="3" cols="50" placeholder="質問を入力してください..."></textarea><br>
+  <button id="send">送信</button>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById("send").addEventListener("click", async () => {
+      const prompt = document.getElementById("prompt").value;
+
+      try {
+        const res = await fetch("/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) {
+          throw new Error("HTTPエラー: " + res.status);
+        }
+
+        const data = await res.json();
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById("output").textContent = "エラー: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
