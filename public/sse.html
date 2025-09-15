@@ -19,19 +19,45 @@
   </style>
 </head>
 <body>
-  <h1>SSE 受信デモ</h1>
+  <h1>SSE リバーシボード</h1>
 
+  <!-- トークン表示 -->
+  <p id="token">トークン: （まだなし）</p>
+
+  <!-- 各種情報 -->
   <div id="info">
     <p id="status">ステータス: </p>
     <p id="step">ステップ: </p>
     <p id="black">ブラック: </p>
     <p id="white">ホワイト: </p>
+    <p id="qid">ID: </p>
+    <p id="qseat">Seat: </p>
   </div>
 
+  <!-- ボタン -->
+  <div id="actions">
+    <button id="joinBtn">Join</button>
+    <button id="leaveBtn">Leave</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <!-- レスポンス表示 -->
+  <p id="response">レスポンス: （まだなし）</p>
+
+  <!-- ボード -->
   <div id="board"></div>
 
   <script>
-    const sse = new EventSource("/1/sse");
+    // ===== クエリパラメータ取得 =====
+    const params = new URLSearchParams(location.search);
+    const gameId = params.get("id") || "1";
+    const seat   = params.get("seat") || "";
+
+    document.getElementById("qid").innerText   = "ID: " + gameId;
+    document.getElementById("qseat").innerText = "Seat: " + seat;
+
+    // ===== SSE 接続 =====
+    const sse = new EventSource(`/${gameId}/sse`);
 
     function renderBoard(data) {
       // ステータス類を表示
@@ -43,7 +69,6 @@
       // ボードを描画
       const boardDiv = document.getElementById("board");
       boardDiv.innerHTML = "";
-
       const table = document.createElement("table");
 
       data.board.forEach((row, y) => {
@@ -64,7 +89,6 @@
         });
         table.appendChild(tr);
       });
-
       boardDiv.appendChild(table);
     }
 
@@ -78,6 +102,36 @@
         }
       });
     });
+
+    // ===== ボタン処理 =====
+    let currentToken = null;
+
+    async function doPost(action, bodyObj) {
+      const res = await fetch(`/${gameId}/${action}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(bodyObj)
+      });
+      const json = await res.json();
+      document.getElementById("response").innerText =
+        "レスポンス: " + JSON.stringify(json);
+
+      // join の場合は token を保存・表示
+      if (action === "join" && json.token) {
+        currentToken = json.token;
+        document.getElementById("token").innerText = "トークン: " + currentToken;
+      }
+    }
+
+    document.getElementById("joinBtn").onclick = () => doPost("join", {});
+    document.getElementById("leaveBtn").onclick = () => {
+      if (!currentToken) {
+        alert("先にJoinしてください");
+        return;
+      }
+      doPost("leave", {token: currentToken});
+    };
+    document.getElementById("resetBtn").onclick = () => doPost("reset", {});
   </script>
 </body>
 </html>
