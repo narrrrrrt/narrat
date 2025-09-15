@@ -51,11 +51,11 @@ class RoomPage {
     // 盤面更新は SSE に任せる
   }
   
-  async handleMove() {
+  async handleMove(x = null, y = null) {
     if (!this.token) return;
-    const x = parseInt(this.selX.value, 10);
-    const y = parseInt(this.selY.value, 10);
-    const res = await move(this.id, this.token, x, y);
+    const moveX = x !== null ? x : parseInt(this.selX.value, 10);
+    const moveY = y !== null ? y : parseInt(this.selY.value, 10);
+    const res = await move(this.id, this.token, moveX, moveY);
     if (!res.ok) {
       appendLog("ERROR", res.error || "move failed");
     }

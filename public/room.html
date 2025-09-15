@@ -6,6 +6,10 @@
   <link rel="stylesheet" href="css/room.css">
 </head>
 <body>
+  <div id="nav">
+    <a href="index.html" id="back-to-lobby">← ロビーへ戻る</a>
+  </div>
+
   <h1>Reversi Room <span id="room-title" data-template="ID {id}">ID {id}</span></h1>
 
   <div id="token">Your token: <span id="your-token">-</span></div>
@@ -23,17 +27,17 @@
       <span class="url" id="url-move" data-template="/{id}/move">/{id}/move</span>
       <span class="body">{"token":"...","x":
         <select id="select-x">
-          <option value="1">1</option><option value="2">2</option>
-          <option value="3">3</option><option value="4">4</option>
-          <option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option>
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option>
         </select>,
         "y":
         <select id="select-y">
-          <option value="1">1</option><option value="2">2</option>
-          <option value="3">3</option><option value="4">4</option>
-          <option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option>
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option>
         </select>
       }</span>
     </div>
