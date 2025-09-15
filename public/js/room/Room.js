@@ -69,17 +69,32 @@ function updateInfo(data) {
 }
 
 function connectSSE() {
-  state.sse = new EventSource(`/${state.id}/status`);
+  const url = `${location.origin}/${state.id}/status`;
+  state.sse = new EventSource(url);
 
-  ["join", "move", "leave"].forEach(ev => {
-    state.sse.addEventListener(ev, e => {
-      const data = JSON.parse(e.data);
-      // 盤面と補足情報を反映
-      if (data.board) renderBoard(data.board);
-      updateInfo(data);
-      log("SSE " + ev, data);
-    });
+  // 接続状態を見たいので onopen / onerror もログ
+  state.sse.onopen = () => log("SSE OPEN", { url });
+  state.sse.onerror = () => {
+    // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
+    log("SSE ERROR", { readyState: state.sse.readyState });
+  };
+
+  const handle = (evName) => (e) => {
+    let data;
+    try { data = JSON.parse(e.data); } catch { data = e.data; }
+    // 盤面と補足情報を反映
+    if (data && data.board) renderBoard(data.board);
+    updateInfo(data);
+    log(`SSE ${evName}`, data);
+  };
+
+  // いまはデバッグ目的で全て拾う（後で join/move/leave だけに戻せる）
+  ["join", "move", "leave", "reset", "init", "pulse"].forEach(ev => {
+    state.sse.addEventListener(ev, handle(ev));
   });
+
+  // event: が無い「デフォルト message」用の保険
+  state.sse.onmessage = handle("message");
 }
 
 // --- Button handlers ---
