@@ -34,6 +34,9 @@
     <p id="qseat">Seat: </p>
   </div>
 
+  <!-- アクション表示 -->
+  <p id="action">アクション: （まだなし）</p>
+
   <!-- ボタン -->
   <div id="actions">
     <button id="joinBtn">Join</button>
@@ -92,11 +95,16 @@
       boardDiv.appendChild(table);
     }
 
-    // ==== SSE イベント（init は不要） ====
+    // ==== SSE イベント（init は除外） ====
     ["join","move","leave","reset"].forEach(ev => {
       sse.addEventListener(ev, e => {
         try {
           const data = JSON.parse(e.data);
+
+          // アクション名を表示
+          document.getElementById("action").innerText = "アクション: " + ev;
+
+          // ボード更新
           renderBoard(data);
         } catch (err) {
           console.error("JSON parse error", err, e.data);
