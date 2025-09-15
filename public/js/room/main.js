@@ -36,23 +36,34 @@ class RoomClient {
     this.connectSSE();
   }
 
+  // レスポンスを画面に出力
+  logResponse(label, data) {
+    const logEl = document.getElementById("response-log");
+    if (logEl) {
+      logEl.textContent = `${label}:\n` + JSON.stringify(data, null, 2);
+    }
+  }
+
   async join() {
     const res = await fetch(`/${this.id}/join`, { method: "POST" });
     const data = await res.json();
     this.token = data.token;
     this.step = data.step;
     document.getElementById("your-token").textContent = this.token;
+    this.logResponse("JOIN", data);
   }
 
   async leave() {
     if (!this.token) return;
-    await fetch(`/${this.id}/leave`, {
+    const res = await fetch(`/${this.id}/leave`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: this.token })
     });
+    const data = await res.json();
     this.token = null;
     document.getElementById("your-token").textContent = "-";
+    this.logResponse("LEAVE", data);
   }
 
   async move(x, y) {
@@ -65,10 +76,13 @@ class RoomClient {
     const data = await res.json();
     if (data.board) this.renderBoard(data.board);
     if (data.step !== undefined) this.step = data.step;
+    this.logResponse("MOVE", data);
   }
 
   async reset() {
-    await fetch(`/${this.id}/reset`, { method: "POST" });
+    const res = await fetch(`/${this.id}/reset`, { method: "POST" });
+    const data = await res.json();
+    this.logResponse("RESET", data);
   }
 
   startHeartbeat() {
@@ -78,7 +92,10 @@ class RoomClient {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: this.token })
-      });
+      })
+        .then(res => res.json())
+        .then(data => this.logResponse("HEARTBEAT", data))
+        .catch(err => this.logResponse("HEARTBEAT ERROR", { error: err.message }));
     }, 1000);
   }
 
@@ -100,18 +117,21 @@ class RoomClient {
       }
       if (data.board) this.renderBoard(data.board);
       if (data.step !== undefined) this.step = data.step;
+      this.logResponse("SSE JOIN", data);
     });
 
     this.sse.addEventListener("move", ev => {
       const data = JSON.parse(ev.data);
       if (data.board) this.renderBoard(data.board);
       if (data.step !== undefined) this.step = data.step;
+      this.logResponse("SSE MOVE", data);
     });
 
     this.sse.addEventListener("leave", ev => {
       const data = JSON.parse(ev.data);
       if (data.board) this.renderBoard(data.board);
       if (data.step !== undefined) this.step = data.step;
+      this.logResponse("SSE LEAVE", data);
     });
   }
 
