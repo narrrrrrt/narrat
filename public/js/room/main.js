@@ -12,38 +12,22 @@ class RoomClient {
   }
 
   init() {
-    alert("init() called");
-
     // {id} を置換
     document.querySelectorAll("[data-template]").forEach(el => {
       el.textContent = el.dataset.template.replace("{id}", this.id);
     });
 
-    // JOIN ボタン
-    const joinBtn = document.getElementById("btn-join");
-    if (joinBtn) {
-      alert("btn-join found");
-      joinBtn.addEventListener("click", () => {
-        alert("JOIN button clicked");
-        this.join();
-      });
-    } else {
-      alert("btn-join NOT found!");
-    }
-
-    // RESET ボタン
-    const resetBtn = document.getElementById("btn-reset");
-    if (resetBtn) {
-      alert("btn-reset found");
-      resetBtn.addEventListener("click", () => {
-        alert("RESET button clicked");
-        this.reset();
-      });
-    } else {
-      alert("btn-reset NOT found!");
-    }
-
-    // （他のボタンは後で追加すればOK）
+    // ボタンにイベント登録
+    document.getElementById("btn-join").addEventListener("click", () => this.join());
+    document.getElementById("btn-leave").addEventListener("click", () => this.leave());
+    document.getElementById("btn-move").addEventListener("click", () => {
+      const x = parseInt(document.getElementById("select-x").value, 10);
+      const y = parseInt(document.getElementById("select-y").value, 10);
+      this.move(x, y);
+    });
+    document.getElementById("btn-reset").addEventListener("click", () => this.reset());
+    document.getElementById("btn-hb-start").addEventListener("click", () => this.startHeartbeat());
+    document.getElementById("btn-hb-stop").addEventListener("click", () => this.stopHeartbeat());
 
     // ボード初期化（64セル）
     this.initBoard();
@@ -61,44 +45,76 @@ class RoomClient {
   }
 
   async join() {
-    const res = await fetch(`/${this.id}/join`, { method: "POST" });
-    const data = await res.json();
-    this.token = data.token;
-    this.step = data.step;
-    document.getElementById("your-token").textContent = this.token;
-    this.logResponse("JOIN", data);
+    try {
+      const res = await fetch(`/${this.id}/join`, { method: "POST" });
+      const text = await res.text();
+      alert("JOIN response:\n" + text);
+
+      const data = JSON.parse(text);
+      this.token = data.token;
+      this.step = data.step;
+      document.getElementById("your-token").textContent = this.token;
+      this.logResponse("JOIN", data);
+    } catch (err) {
+      alert("JOIN error: " + err.message);
+    }
   }
 
   async leave() {
     if (!this.token) return;
-    const res = await fetch(`/${this.id}/leave`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: this.token })
-    });
-    const data = await res.json();
-    this.token = null;
-    document.getElementById("your-token").textContent = "-";
-    this.logResponse("LEAVE", data);
+    try {
+      const res = await fetch(`/${this.id}/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: this.token })
+      });
+      const text = await res.text();
+      alert("LEAVE response:\n" + text);
+
+      const data = JSON.parse(text);
+      this.token = null;
+      document.getElementById("your-token").textContent = "-";
+      this.logResponse("LEAVE", data);
+    } catch (err) {
+      alert("LEAVE error: " + err.message);
+    }
   }
 
   async move(x, y) {
     if (!this.token) return;
-    const res = await fetch(`/${this.id}/move`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: this.token, x, y })
-    });
-    const data = await res.json();
-    if (data.board) this.renderBoard(data.board);
-    if (data.step !== undefined) this.step = data.step;
-    this.logResponse("MOVE", data);
+    try {
+      const res = await fetch(`/${this.id}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: this.token, x, y })
+      });
+      const text = await res.text();
+      alert("MOVE response:\n" + text);
+
+      const data = JSON.parse(text);
+      if (data.board) this.renderBoard(data.board);
+      if (data.step !== undefined) this.step = data.step;
+      this.logResponse("MOVE", data);
+    } catch (err) {
+      alert("MOVE error: " + err.message);
+    }
   }
 
   async reset() {
-    const res = await fetch(`/${this.id}/reset`, { method: "POST" });
-    const data = await res.json();
-    this.logResponse("RESET", data);
+    try {
+      const res = await fetch(`/${this.id}/reset`, { method: "POST" });
+      const text = await res.text();
+      alert("RESET response:\n" + text);
+
+      try {
+        const data = JSON.parse(text);
+        this.logResponse("RESET", data);
+      } catch (e) {
+        this.logResponse("RESET (raw)", text);
+      }
+    } catch (err) {
+      alert("RESET error: " + err.message);
+    }
   }
 
   startHeartbeat() {
@@ -109,9 +125,17 @@ class RoomClient {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: this.token })
       })
-        .then(res => res.json())
-        .then(data => this.logResponse("HEARTBEAT", data))
-        .catch(err => this.logResponse("HEARTBEAT ERROR", { error: err.message }));
+        .then(res => res.text())
+        .then(text => {
+          alert("HEARTBEAT response:\n" + text);
+          try {
+            const data = JSON.parse(text);
+            this.logResponse("HEARTBEAT", data);
+          } catch {
+            this.logResponse("HEARTBEAT (raw)", text);
+          }
+        })
+        .catch(err => alert("HEARTBEAT error: " + err.message));
     }, 1000);
   }
 
