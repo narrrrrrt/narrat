@@ -16,6 +16,12 @@
       text-decoration: none;
       color: black;
     }
+    pre {
+      background: #f0f0f0;
+      padding: 5px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +51,7 @@
   </div>
 
   <!-- レスポンス表示 -->
-  <p id="response">レスポンス: （まだなし）</p>
+  <pre id="response">レスポンス: （まだなし）</pre>
 
   <!-- ボード -->
   <div id="board"></div>
@@ -122,11 +128,13 @@
         body: JSON.stringify(bodyObj)
       });
       const json = await res.json();
+
+      // 整形して表示
       document.getElementById("response").innerText =
-        "レスポンス: " + JSON.stringify(json);
+        "レスポンス:\n" + JSON.stringify(json, null, 2);
 
       // join の場合は token を保存・表示
-      if (action === "join" && json.token) {
+      if (action === "join" && json.ok && json.token) {
         currentToken = json.token;
         document.getElementById("token").innerText = "トークン: " + currentToken;
       }
@@ -138,7 +146,7 @@
         alert("先にJoinしてください");
         return;
       }
-      doPost("leave", {token: currentToken});
+      doPost("leave", { token: currentToken });
     };
     document.getElementById("resetBtn").onclick = () => doPost("reset", {});
   </script>
