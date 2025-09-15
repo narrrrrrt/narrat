@@ -13,10 +13,13 @@
   <h1>Reversi Room <span id="room-title" data-template="ID {id}">ID {id}</span></h1>
 
   <div id="token">Your token: <span id="your-token">-</span></div>
-    <div class="control-row">
-      <button id="btn-reset">RESET</button>
-      <span class="url" id="url-reset" data-template="/{id}/reset">/{id}/reset</span>
-    </div>
+  <div id="seat">Your seat: <span id="your-seat">-</span></div>
+
+  <div class="control-row">
+    <button id="btn-reset">RESET</button>
+    <span class="url" id="url-reset" data-template="/{id}/reset">/{id}/reset</span>
+  </div>
+
   <div id="controls">
     <div class="control-row">
       <button id="btn-join">JOIN</button>
@@ -52,9 +55,11 @@
     </div>
   </div>
 
+  <!-- 盤面表示 -->
+  <h2>Board</h2>
   <div id="board"></div>
-  <div id="state-log"></div>
 
-  <script type="module" src="js/room/main.js"></script>
+  <!-- スクリプト -->
+  <script src="js/room/main.js"></script>
 </body>
 </html>

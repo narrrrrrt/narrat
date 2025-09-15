@@ -1,22 +1,29 @@
-body {
-  font-family: sans-serif;
-}
+/* public/css/room.css */
 
-#controls {
-  margin: 1em 0;
+/* 盤面 */
+#board {
+  display: inline-block;
+  margin: 20px 0;
 }
-
-.control-row {
-  margin: 0.5em 0;
+.row {
+  display: flex;
 }
-
-#board table {
-  border-collapse: collapse;
-}
-
-#board td {
-  width: 24px;
-  height: 24px;
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #aaa;
   text-align: center;
-  border: 1px solid #999;
+  line-height: 30px;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+/* 最低限のコントロール部 */
+.control-row {
+  margin: 5px 0;
+}
+.url, .body {
+  margin-left: 10px;
+  font-size: 0.9em;
+  color: #666;
 }
