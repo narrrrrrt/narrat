@@ -36,7 +36,8 @@ async function api(path, body = null) {
 }
 
 async function join() {
-  const data = await api(`/${state.id}/join`);
+  const body = { seat: state.seat };   // ← seat を送る
+  const data = await api(`/${state.id}/join`, body);
   if (data.token) state.token = data.token;
   log("JOIN", data);
 }
@@ -46,7 +47,8 @@ async function move() {
     log("MOVE", { error: "no token" });
     return;
   }
-  const data = await api(`/${state.id}/move`, { token: state.token, x: 3, y: 2 });
+  const body = { token: state.token, x: 3, y: 2 };
+  const data = await api(`/${state.id}/move`, body);
   log("MOVE", data);
 }
 
@@ -55,7 +57,8 @@ async function leave() {
     log("LEAVE", { error: "no token" });
     return;
   }
-  const data = await api(`/${state.id}/leave`, { token: state.token });
+  const body = { token: state.token };
+  const data = await api(`/${state.id}/leave`, body);
   state.token = null;
   log("LEAVE", data);
 }
@@ -72,7 +75,8 @@ function startHeartbeat() {
   }
   if (state.hbTimer) return;
   state.hbTimer = setInterval(async () => {
-    const data = await api(`/${state.id}/hb`, { token: state.token });
+    const body = { token: state.token };
+    const data = await api(`/${state.id}/hb`, body);
     log("HB", data);
   }, 1000);
 }
