@@ -1,0 +1,23 @@
+body {
+  font-family: system-ui, sans-serif;
+  padding: 16px;
+}
+
+button {
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+#board {
+  margin-top: 10px;
+}
+
+#board .row {
+  line-height: 20px;
+}
+
+#board .cell {
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
