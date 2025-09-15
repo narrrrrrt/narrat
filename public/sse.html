@@ -11,10 +11,15 @@
 
   <script>
     const sse = new EventSource("/1/sse");
-    sse.onmessage = e => {
-      document.getElementById("event").innerText = "イベント: message";
+
+    function show(e) {
+      document.getElementById("event").innerText = "イベント: " + e.type;
       document.getElementById("data").innerText  = "データ: " + e.data;
-    };
+    }
+
+    ["init", "reset", "join", "leave"].forEach(ev =>
+      sse.addEventListener(ev, show)
+    );
   </script>
 </body>
 </html>
