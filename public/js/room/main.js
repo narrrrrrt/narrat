@@ -1,158 +1,102 @@
-// public/js/room/main.js
-import { apiJoin, apiLeave, apiMove, apiReset, apiHeartbeat } from "./api.js";
+import { getQueryParams, applyTemplates, appendLog } from "./utils.js";
+import { join, move, leave, reset } from "./api.js"; 
+import { startSSE } from "./sse.js";
+import { applyBoard } from "./board.js";
+import { startHeartbeat, stopHeartbeat } from "./heartbeat.js";
 
-class RoomClient {
+class RoomPage {
   constructor(id, seat) {
     this.id = id;
-    this.seat = seat;
+    this.role = seat;
     this.token = null;
-    this.step = null;
-    this.hbTimer = null;
-    this.sse = null;
+
+    this.btnReset = document.getElementById("btn-reset");
+    this.tokenSpan = document.getElementById("your-token");
+    this.btnJoin = document.getElementById("btn-join");
+    this.btnMove = document.getElementById("btn-move");
+    this.btnLeave = document.getElementById("btn-leave");
+    this.btnHbStart = document.getElementById("btn-hb-start");
+    this.btnHbStop = document.getElementById("btn-hb-stop");
+    this.selX = document.getElementById("select-x");
+    this.selY = document.getElementById("select-y");
   }
 
   init() {
-    // {id} 置換
-    document.querySelectorAll("[data-template]").forEach(el => {
-      el.textContent = el.dataset.template.replace("{id}", this.id);
-    });
+    this.btnReset.addEventListener("click", () => this.handleReset());
+    this.btnJoin.addEventListener("click", () => this.handleJoin());
+    this.btnMove.addEventListener("click", () => this.handleMove());
+    this.btnLeave.addEventListener("click", () => this.handleLeave());
+    this.btnHbStart.addEventListener("click", () => this.handleHbStart());
+    this.btnHbStop.addEventListener("click", () => this.handleHbStop());
 
-    // イベント登録
-    document.getElementById("btn-join").addEventListener("click", () => this.join());
-    document.getElementById("btn-leave").addEventListener("click", () => this.leave());
-    document.getElementById("btn-move").addEventListener("click", () => {
-      const x = parseInt(document.getElementById("select-x").value, 10);
-      const y = parseInt(document.getElementById("select-y").value, 10);
-      this.move(x, y);
+    startSSE(this.id, (type, data) => {
+      appendLog(type, `step=${data.step}, status=${data.status}`);
+      //applyBoard(data, this.role, this.btnMove);
+      applyBoard(data, this.role, this.btnMove, this.id, this.token);
     });
-    document.getElementById("btn-reset").addEventListener("click", () => this.reset());
-    document.getElementById("btn-hb-start").addEventListener("click", () => this.startHeartbeat());
-    document.getElementById("btn-hb-stop").addEventListener("click", () => this.stopHeartbeat());
-
-    this.initBoard();
-    this.connectSSE();
   }
 
-  logResponse(label, data) {
-    const logEl = document.getElementById("response-log");
-    if (logEl) logEl.textContent = `${label}:\n` + JSON.stringify(data, null, 2);
-  }
-
-  async join() {
-    const data = await apiJoin(this.id);
-    if (data.token) {
-      this.token = data.token;
-      this.step = data.step;
-      document.getElementById("your-token").textContent = this.token;
+  async handleJoin() {
+    const res = await join(this.id, this.role);
+    if (res.token) {
+      this.token = res.token;
+      this.tokenSpan.textContent = this.token;
     }
-    this.logResponse("JOIN", data);
+    if (res.role) {
+      this.role = res.role;
+    }
+    if (!res.ok) {
+      appendLog("ERROR", res.error || "join failed");
+    }
+    // 盤面更新は SSE に任せる
+  }
+  
+  async handleMove(x = null, y = null) {
+    if (!this.token) return;
+    const moveX = x !== null ? x : parseInt(this.selX.value, 10);
+    const moveY = y !== null ? y : parseInt(this.selY.value, 10);
+    const res = await move(this.id, this.token, moveX, moveY);
+    if (!res.ok) {
+      appendLog("ERROR", res.error || "move failed");
+    }
+    // 盤面更新は SSE で反映
   }
 
-  async leave() {
+  async handleLeave() {
     if (!this.token) return;
-    const data = await apiLeave(this.id, this.token);
+    await leave(this.id, this.token);
     this.token = null;
-    document.getElementById("your-token").textContent = "-";
-    this.logResponse("LEAVE", data);
+    this.tokenSpan.textContent = "-";
+  }
+  
+  async handleReset() {
+    const res = await reset(this.id);
+    alert(res.ok);
+    // 盤面更新は引き続き SSE "reset" イベントで反映
   }
 
-  async move(x, y) {
-    if (!this.token) return;
-    const data = await apiMove(this.id, this.token, x, y);
-    if (data.board) this.renderBoard(data.board);
-    if (data.step !== undefined) this.step = data.step;
-    this.logResponse("MOVE", data);
-  }
-
-  async reset() {
-    const data = await apiReset(this.id);
-    this.logResponse("RESET", data);
-  }
-
-  startHeartbeat() {
-    if (this.hbTimer || !this.token) return;
-    this.hbTimer = setInterval(async () => {
-      const data = await apiHeartbeat(this.id, this.token);
-      this.logResponse("HEARTBEAT", data);
-    }, 1000);
-  }
-
-  stopHeartbeat() {
-    if (this.hbTimer) {
-      clearInterval(this.hbTimer);
-      this.hbTimer = null;
+  handleHbStart() {
+    if (!this.token) {
+      alert("Join first to get a token.");
+      return;
     }
+    startHeartbeat(this.id, this.token);
   }
 
-  connectSSE() {
-    this.sse = new EventSource(`/${this.id}/status`);
-
-    this.sse.addEventListener("join", ev => {
-      const data = JSON.parse(ev.data);
-      if (data.role) {
-        this.seat = data.role;
-        document.getElementById("your-seat").textContent = this.seat;
-      }
-      if (data.board) this.renderBoard(data.board);
-      if (data.step !== undefined) this.step = data.step;
-      this.logResponse("SSE JOIN", data);
-    });
-
-    this.sse.addEventListener("move", ev => {
-      const data = JSON.parse(ev.data);
-      if (data.board) this.renderBoard(data.board);
-      if (data.step !== undefined) this.step = data.step;
-      this.logResponse("SSE MOVE", data);
-    });
-
-    this.sse.addEventListener("leave", ev => {
-      const data = JSON.parse(ev.data);
-      if (data.board) this.renderBoard(data.board);
-      if (data.step !== undefined) this.step = data.step;
-      this.logResponse("SSE LEAVE", data);
-    });
-  }
-
-  initBoard() {
-    const boardEl = document.getElementById("board");
-    if (!boardEl) return;
-    boardEl.innerHTML = "";
-    for (let y = 0; y < 8; y++) {
-      const row = document.createElement("div");
-      row.className = "row";
-      for (let x = 0; x < 8; x++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.dataset.x = x;
-        cell.dataset.y = y;
-        cell.textContent = "-";
-        cell.addEventListener("click", () => this.move(x, y));
-        row.appendChild(cell);
-      }
-      boardEl.appendChild(row);
-    }
-  }
-
-  renderBoard(board) {
-    const cells = document.querySelectorAll("#board .cell");
-    cells.forEach(cell => {
-      const x = parseInt(cell.dataset.x, 10);
-      const y = parseInt(cell.dataset.y, 10);
-      const ch = board[y].charAt(x);
-      cell.textContent = ch;
-    });
+  handleHbStop() {
+    stopHeartbeat();
   }
 }
 
-// 起動
-window.addEventListener("load", () => {
-  const params = new URLSearchParams(location.search);
-  const id = params.get("id");
-  const seat = params.get("seat");
+window.onload = () => {
+  const { id, seat } = getQueryParams();
   if (!id || !seat) {
-    alert("id と seat が必要です");
+    alert("Missing query parameters: id or seat");
     return;
   }
-  const client = new RoomClient(id, seat);
-  client.init();
-});
+
+  applyTemplates(id, seat);
+
+  const room = new RoomPage(id, seat);
+  room.init();
+};

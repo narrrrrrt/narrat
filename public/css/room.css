@@ -1,0 +1,22 @@
+body {
+  font-family: sans-serif;
+}
+
+#controls {
+  margin: 1em 0;
+}
+
+.control-row {
+  margin: 0.5em 0;
+}
+
+#board table {
+  border-collapse: collapse;
+}
+
+#board td {
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  border: 1px solid #999;
+}
