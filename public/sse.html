@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>SSE表示テスト</title>
+</head>
+<body>
+  <h1>SSE 受信デモ</h1>
+  <p id="event">イベント: （まだなし）</p>
+  <p id="data">データ: （まだなし）</p>
+
+  <script>
+    const sse = new EventSource("/1/sse");
+    sse.onmessage = e => {
+      document.getElementById("event").innerText = "イベント: message";
+      document.getElementById("data").innerText  = "データ: " + e.data;
+    };
+  </script>
+</body>
+</html>
