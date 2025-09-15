@@ -60,7 +60,9 @@
     // ===== クエリパラメータ取得 =====
     const params = new URLSearchParams(location.search);
     const gameId = params.get("id") || "1";
-    const seat   = params.get("seat") || "";
+    let seat     = params.get("seat") || "";   // seat は join 後に role で上書きする
+    let currentToken = null;
+    let currentStep  = null;
 
     document.getElementById("qid").innerText   = "ID: " + gameId;
     document.getElementById("qseat").innerText = "Seat: " + seat;
@@ -91,7 +93,11 @@
           a.dataset.y = y;
           a.onclick = (e) => {
             e.preventDefault();
-            alert(JSON.stringify({x: x, y: y}));
+            if (!currentToken) {
+              alert("先にJoinしてください");
+              return;
+            }
+            doPost("move", { x: x, y: y, token: currentToken });
           };
           td.appendChild(a);
           tr.appendChild(td);
@@ -106,10 +112,8 @@
       sse.addEventListener(ev, e => {
         try {
           const data = JSON.parse(e.data);
-
           // アクション名を表示
           document.getElementById("action").innerText = "アクション: " + ev;
-
           // ボード更新
           renderBoard(data);
         } catch (err) {
@@ -119,8 +123,6 @@
     });
 
     // ===== ボタン処理 =====
-    let currentToken = null;
-
     async function doPost(action, bodyObj) {
       const res = await fetch(`/${gameId}/${action}`, {
         method: "POST",
@@ -133,14 +135,26 @@
       document.getElementById("response").innerText =
         "レスポンス:\n" + JSON.stringify(json, null, 2);
 
-      // join の場合は token を保存・表示
-      if (action === "join" && json.ok && json.token) {
-        currentToken = json.token;
-        document.getElementById("token").innerText = "トークン: " + currentToken;
+      // === レスポンス処理 ===
+      if (json.ok) {
+        if (typeof json.step === "number") {
+          currentStep = json.step;
+          document.getElementById("step").innerText = "ステップ: " + currentStep;
+        }
+        if (action === "join") {
+          currentToken = json.token;
+          seat = json.role;
+          document.getElementById("token").innerText = "トークン: " + currentToken;
+          document.getElementById("qseat").innerText = "Seat: " + seat;
+        }
+      } else {
+        if (json.error) {
+          alert(json.error);
+        }
       }
     }
 
-    document.getElementById("joinBtn").onclick = () => doPost("join", {});
+    document.getElementById("joinBtn").onclick = () => doPost("join", { seat: seat });
     document.getElementById("leaveBtn").onclick = () => {
       if (!currentToken) {
         alert("先にJoinしてください");
