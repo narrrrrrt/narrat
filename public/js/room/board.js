@@ -40,25 +40,12 @@ function renderBoard(pre, board, status, step, role, roomId, token) {
           link.addEventListener("click", async (e) => {
             e.preventDefault();
             if (!token) {
-              console.error("No token, cannot move.");
               return;
             }
 
-            // デバッグログ
-            console.log("click MOVE payload", {
-              roomId,
-              token,
-              x: x + 1,
-              y: y + 1,
-              typeX: typeof (x + 1),
-              typeY: typeof (y + 1)
-            });
-
             try {
-              const res = await move(roomId, token, Number(x + 1), Number(y + 1));
-              console.log("MOVE response:", res);
+              const res = await move(roomId, token, x, y);
             } catch (err) {
-              console.error("MOVE failed:", err);
             }
           });
           pre.appendChild(link);
