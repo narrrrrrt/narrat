@@ -2,24 +2,82 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SSE表示テスト</title>
+  <title>SSE リバーシボード</title>
+  <style>
+    table { border-collapse: collapse; margin-top: 10px; }
+    td {
+      border: 1px solid #000;
+      width: 30px; height: 30px;
+      text-align: center;
+    }
+    a {
+      display: block;
+      width: 100%; height: 100%;
+      text-decoration: none;
+      color: black;
+    }
+  </style>
 </head>
 <body>
   <h1>SSE 受信デモ</h1>
-  <p id="event">イベント: （まだなし）</p>
-  <p id="data">データ: （まだなし）</p>
+
+  <div id="info">
+    <p id="status">ステータス: </p>
+    <p id="step">ステップ: </p>
+    <p id="black">ブラック: </p>
+    <p id="white">ホワイト: </p>
+  </div>
+
+  <div id="board"></div>
 
   <script>
     const sse = new EventSource("/1/sse");
 
-    function show(e) {
-      document.getElementById("event").innerText = "イベント: " + e.type;
-      document.getElementById("data").innerText  = "データ: " + e.data;
+    function renderBoard(data) {
+      // ステータス類を表示
+      document.getElementById("status").innerText = "ステータス: " + data.status;
+      document.getElementById("step").innerText   = "ステップ: " + data.step;
+      document.getElementById("black").innerText  = "ブラック: " + data.black;
+      document.getElementById("white").innerText  = "ホワイト: " + data.white;
+
+      // ボードを描画
+      const boardDiv = document.getElementById("board");
+      boardDiv.innerHTML = "";
+
+      const table = document.createElement("table");
+
+      data.board.forEach((row, y) => {
+        const tr = document.createElement("tr");
+        row.split("").forEach((cell, x) => {
+          const td = document.createElement("td");
+          const a = document.createElement("a");
+          a.href = "#";
+          a.innerText = cell;
+          a.dataset.x = x;
+          a.dataset.y = y;
+          a.onclick = (e) => {
+            e.preventDefault();
+            alert(JSON.stringify({x: x, y: y}));
+          };
+          td.appendChild(a);
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+
+      boardDiv.appendChild(table);
     }
 
-    ["init", "reset", "join", "leave"].forEach(ev =>
-      sse.addEventListener(ev, show)
-    );
+    ["init","reset","join","leave"].forEach(ev => {
+      sse.addEventListener(ev, e => {
+        try {
+          const data = JSON.parse(e.data);
+          renderBoard(data);
+        } catch (err) {
+          console.error("JSON parse error", err, e.data);
+        }
+      });
+    });
   </script>
 </body>
 </html>
