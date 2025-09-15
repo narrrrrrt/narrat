@@ -6,14 +6,17 @@ const state = {
   token: null,
   hbTimer: null,
   sse: null,
+  sseRetryMs: 1000, // 自動再接続用
+  lastEventAt: 0,
 };
 
 function log(label, payload) {
   const el = document.getElementById("log");
-  el.textContent = `${label}:\n` + JSON.stringify(payload, null, 2);
+  const now = new Date().toLocaleTimeString();
+  el.textContent = `${now} ${label}:\n` + JSON.stringify(payload, null, 2);
 }
 
-// ボディがある時だけ Content-Type を付ける
+/* ---------------- API（ボディがあるときだけ Content-Type を付ける） ---------------- */
 async function api(path, body = undefined) {
   const headers = { Accept: "application/json" };
   const opts = { method: "POST", headers };
@@ -32,6 +35,7 @@ async function api(path, body = undefined) {
   }
 }
 
+/* ---------------- Board ---------------- */
 function initBoard() {
   const boardEl = document.getElementById("board");
   boardEl.innerHTML = "";
@@ -68,37 +72,54 @@ function updateInfo(data) {
   if ("white"  in data) document.getElementById("info-white").textContent  = String(data.white);
 }
 
+/* ---------------- SSE（ロビー方式に寄せる） ---------------- */
 function connectSSE() {
-  const url = `${location.origin}/${state.id}/status`;
-  state.sse = new EventSource(url);
+  const url = `${location.origin}/${state.id}/status?stream=1`; // 絶対URL + キャッシュ回避クエリ
+  if (state.sse) {
+    try { state.sse.close(); } catch {}
+    state.sse = null;
+  }
 
-  // 接続状態を見たいので onopen / onerror もログ
-  state.sse.onopen = () => log("SSE OPEN", { url });
-  state.sse.onerror = () => {
-    // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
-    log("SSE ERROR", { readyState: state.sse.readyState });
+  const es = new EventSource(url /* , { withCredentials: true } */);
+  state.sse = es;
+  log("SSE CONNECT", { url });
+
+  es.onopen = () => {
+    state.lastEventAt = Date.now();
+    state.sseRetryMs = 1000; // 成功したらリトライ間隔をリセット
+    log("SSE OPEN", { url });
+  };
+
+  es.onerror = () => {
+    const rs = es.readyState; // 0=CONNECTING, 1=OPEN, 2=CLOSED
+    log("SSE ERROR", { readyState: rs });
+    try { es.close(); } catch {}
+    state.sse = null;
+    // バックオフして再接続
+    setTimeout(connectSSE, state.sseRetryMs);
+    state.sseRetryMs = Math.min(state.sseRetryMs * 2, 10000);
   };
 
   const handle = (evName) => (e) => {
+    state.lastEventAt = Date.now();
     let data;
     try { data = JSON.parse(e.data); } catch { data = e.data; }
-    // 盤面と補足情報を反映
+
     if (data && data.board) renderBoard(data.board);
     updateInfo(data);
     log(`SSE ${evName}`, data);
   };
 
-  // いまはデバッグ目的で全て拾う（後で join/move/leave だけに戻せる）
+  // ロビー同様、メッセージ系は全部拾う（join/move/leaveが本命、init/pulse/resetはデバッグ用）
   ["join", "move", "leave", "reset", "init", "pulse"].forEach(ev => {
-    state.sse.addEventListener(ev, handle(ev));
+    es.addEventListener(ev, handle(ev));
   });
 
-  // event: が無い「デフォルト message」用の保険
-  state.sse.onmessage = handle("message");
+  // event: が付かない broadcast も保険で拾う
+  es.onmessage = handle("message");
 }
 
-// --- Button handlers ---
-
+/* ---------------- Handlers ---------------- */
 async function handleJoin() {
   const res = await api(`/${state.id}/join`, { seat: state.seat });
   if (res?.data?.token) {
@@ -110,7 +131,7 @@ async function handleJoin() {
 
 async function handleMove() {
   if (!state.token) return log("MOVE", { error: "no token" });
-  // 仮の座標（後でクリック座標に差し替え）
+  // 仮の座標（あとでクリック座標に差し替え）
   const res = await api(`/${state.id}/move`, { token: state.token, x: 3, y: 2 });
   log("MOVE", res);
 }
@@ -124,7 +145,7 @@ async function handleLeave() {
 }
 
 async function handleReset() {
-  // ★ 重要: reset は空ボディだと Workers 側の request.json() で落ちるため {} を送る
+  // ★ reset は {} を送る（空ボディで JSON 読みにいって落ちる対策）
   const res = await api(`/${state.id}/reset`, {});
   log("RESET", res);
 }
@@ -145,8 +166,7 @@ function handleHbStop() {
   }
 }
 
-// --- bootstrap (type="module" なので onload不要) ---
-
+/* ---------------- bootstrap ---------------- */
 const params = new URLSearchParams(location.search);
 state.id = params.get("id");
 state.seat = params.get("seat");
