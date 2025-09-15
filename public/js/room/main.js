@@ -1,4 +1,5 @@
 // public/js/room/main.js
+import { apiJoin, apiLeave, apiMove, apiReset, apiHeartbeat } from "./api.js";
 
 class RoomClient {
   constructor(id, seat) {
@@ -8,16 +9,15 @@ class RoomClient {
     this.step = null;
     this.hbTimer = null;
     this.sse = null;
-    this.currentTurn = null;
   }
 
   init() {
-    // {id} を置換
+    // {id} 置換
     document.querySelectorAll("[data-template]").forEach(el => {
       el.textContent = el.dataset.template.replace("{id}", this.id);
     });
 
-    // ボタンにイベント登録
+    // イベント登録
     document.getElementById("btn-join").addEventListener("click", () => this.join());
     document.getElementById("btn-leave").addEventListener("click", () => this.leave());
     document.getElementById("btn-move").addEventListener("click", () => {
@@ -29,148 +29,51 @@ class RoomClient {
     document.getElementById("btn-hb-start").addEventListener("click", () => this.startHeartbeat());
     document.getElementById("btn-hb-stop").addEventListener("click", () => this.stopHeartbeat());
 
-    // ボード初期化（64セル）
     this.initBoard();
-
-    // SSE 接続開始
     this.connectSSE();
   }
 
-  // レスポンスを画面に出力
   logResponse(label, data) {
     const logEl = document.getElementById("response-log");
-    if (logEl) {
-      logEl.textContent = `${label}:\n` + JSON.stringify(data, null, 2);
-    }
+    if (logEl) logEl.textContent = `${label}:\n` + JSON.stringify(data, null, 2);
   }
 
   async join() {
-    const url = `/${this.id}/join`;
-    alert("JOIN fetch URL: " + url);
-
-    try {
-      const res = await fetch(url, { method: "POST" });
-      const text = await res.text();
-      alert("JOIN response:\n" + text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { raw: text };
-      }
-
-      if (data.token) {
-        this.token = data.token;
-        this.step = data.step;
-        document.getElementById("your-token").textContent = this.token;
-      }
-      this.logResponse("JOIN", data);
-    } catch (err) {
-      alert("JOIN error: " + err.message);
+    const data = await apiJoin(this.id);
+    if (data.token) {
+      this.token = data.token;
+      this.step = data.step;
+      document.getElementById("your-token").textContent = this.token;
     }
+    this.logResponse("JOIN", data);
   }
 
   async leave() {
     if (!this.token) return;
-    const url = `/${this.id}/leave`;
-    alert("LEAVE fetch URL: " + url);
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: this.token })
-      });
-      const text = await res.text();
-      alert("LEAVE response:\n" + text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { raw: text };
-      }
-
-      this.token = null;
-      document.getElementById("your-token").textContent = "-";
-      this.logResponse("LEAVE", data);
-    } catch (err) {
-      alert("LEAVE error: " + err.message);
-    }
+    const data = await apiLeave(this.id, this.token);
+    this.token = null;
+    document.getElementById("your-token").textContent = "-";
+    this.logResponse("LEAVE", data);
   }
 
   async move(x, y) {
     if (!this.token) return;
-    const url = `/${this.id}/move`;
-    alert("MOVE fetch URL: " + url);
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: this.token, x, y })
-      });
-      const text = await res.text();
-      alert("MOVE response:\n" + text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { raw: text };
-      }
-
-      if (data.board) this.renderBoard(data.board);
-      if (data.step !== undefined) this.step = data.step;
-      this.logResponse("MOVE", data);
-    } catch (err) {
-      alert("MOVE error: " + err.message);
-    }
+    const data = await apiMove(this.id, this.token, x, y);
+    if (data.board) this.renderBoard(data.board);
+    if (data.step !== undefined) this.step = data.step;
+    this.logResponse("MOVE", data);
   }
 
   async reset() {
-    const url = `/${this.id}/reset`;
-    alert("RESET fetch URL: " + url);
-
-    try {
-      const res = await fetch(url, { method: "POST" });
-      const text = await res.text();
-      alert("RESET response:\n" + text);
-
-      try {
-        const data = JSON.parse(text);
-        this.logResponse("RESET", data);
-      } catch {
-        this.logResponse("RESET (raw)", text);
-      }
-    } catch (err) {
-      alert("RESET error: " + err.message);
-    }
+    const data = await apiReset(this.id);
+    this.logResponse("RESET", data);
   }
 
   startHeartbeat() {
     if (this.hbTimer || !this.token) return;
-    const url = `/${this.id}/hb`;
-    alert("HB fetch URL: " + url);
-
-    this.hbTimer = setInterval(() => {
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: this.token })
-      })
-        .then(res => res.text())
-        .then(text => {
-          alert("HEARTBEAT response:\n" + text);
-          try {
-            const data = JSON.parse(text);
-            this.logResponse("HEARTBEAT", data);
-          } catch {
-            this.logResponse("HEARTBEAT (raw)", text);
-          }
-        })
-        .catch(err => alert("HEARTBEAT error: " + err.message));
+    this.hbTimer = setInterval(async () => {
+      const data = await apiHeartbeat(this.id, this.token);
+      this.logResponse("HEARTBEAT", data);
     }, 1000);
   }
 
@@ -182,10 +85,7 @@ class RoomClient {
   }
 
   connectSSE() {
-    const url = `/${this.id}/status`;
-    alert("SSE connect URL: " + url);
-
-    this.sse = new EventSource(url);
+    this.sse = new EventSource(`/${this.id}/status`);
 
     this.sse.addEventListener("join", ev => {
       const data = JSON.parse(ev.data);
@@ -225,7 +125,7 @@ class RoomClient {
         cell.className = "cell";
         cell.dataset.x = x;
         cell.dataset.y = y;
-        cell.textContent = "-"; // 初期は空
+        cell.textContent = "-";
         cell.addEventListener("click", () => this.move(x, y));
         row.appendChild(cell);
       }
@@ -238,13 +138,13 @@ class RoomClient {
     cells.forEach(cell => {
       const x = parseInt(cell.dataset.x, 10);
       const y = parseInt(cell.dataset.y, 10);
-      const ch = board[y].charAt(x); // 1文字抽出
+      const ch = board[y].charAt(x);
       cell.textContent = ch;
     });
   }
 }
 
-// 起動処理
+// 起動
 window.addEventListener("load", () => {
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
