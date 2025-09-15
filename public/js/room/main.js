@@ -12,22 +12,38 @@ class RoomClient {
   }
 
   init() {
+    alert("init() called");
+
     // {id} を置換
     document.querySelectorAll("[data-template]").forEach(el => {
       el.textContent = el.dataset.template.replace("{id}", this.id);
     });
 
-    // ボタンにイベント登録
-    document.getElementById("btn-join").addEventListener("click", () => this.join());
-    document.getElementById("btn-leave").addEventListener("click", () => this.leave());
-    document.getElementById("btn-move").addEventListener("click", () => {
-      const x = parseInt(document.getElementById("select-x").value, 10);
-      const y = parseInt(document.getElementById("select-y").value, 10);
-      this.move(x, y);
-    });
-    document.getElementById("btn-reset").addEventListener("click", () => this.reset());
-    document.getElementById("btn-hb-start").addEventListener("click", () => this.startHeartbeat());
-    document.getElementById("btn-hb-stop").addEventListener("click", () => this.stopHeartbeat());
+    // JOIN ボタン
+    const joinBtn = document.getElementById("btn-join");
+    if (joinBtn) {
+      alert("btn-join found");
+      joinBtn.addEventListener("click", () => {
+        alert("JOIN button clicked");
+        this.join();
+      });
+    } else {
+      alert("btn-join NOT found!");
+    }
+
+    // RESET ボタン
+    const resetBtn = document.getElementById("btn-reset");
+    if (resetBtn) {
+      alert("btn-reset found");
+      resetBtn.addEventListener("click", () => {
+        alert("RESET button clicked");
+        this.reset();
+      });
+    } else {
+      alert("btn-reset NOT found!");
+    }
+
+    // （他のボタンは後で追加すればOK）
 
     // ボード初期化（64セル）
     this.initBoard();
