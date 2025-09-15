@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reversi Client Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 16px; }
+    button { margin-right: 8px; margin-bottom: 8px; }
+    pre { background: #f6f6f6; padding: 12px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>Reversi Client Test</h1>
+
+  <div>
+    <button id="btn-join">JOIN</button>
+    <button id="btn-move">MOVE</button>
+    <button id="btn-leave">LEAVE</button>
+    <button id="btn-reset">RESET</button>
+    <button id="btn-hb-start">HB Start</button>
+    <button id="btn-hb-stop">HB Stop</button>
+  </div>
+
+  <h2>Response</h2>
+  <pre id="log"></pre>
+
+  <!-- クエリ: ?id=1&seat=black など -->
+  <script type="module" src="./main-min.js"></script>
+</body>
+</html>
