@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Reversi Room</title>
-  <link rel="stylesheet" href="css/room/Room.css">
+  <link rel="stylesheet" href="css/room/Room.css" />
 </head>
 <body>
   <h1>Reversi Room</h1>
 
-  <div>
+  <div class="toolbar">
     <button id="btn-join">JOIN</button>
     <button id="btn-move">MOVE</button>
     <button id="btn-leave">LEAVE</button>
@@ -17,8 +17,22 @@
     <button id="btn-hb-stop">HB Stop</button>
   </div>
 
+  <div class="meta">
+    <div>ID: <span id="meta-id">-</span></div>
+    <div>Seat: <span id="meta-seat">-</span></div>
+    <div>Token: <span id="meta-token">-</span></div>
+  </div>
+
   <h2>Board</h2>
   <div id="board"></div>
+
+  <h2>Info (from SSE)</h2>
+  <div id="info">
+    <div>Status: <span id="info-status">-</span></div>
+    <div>Step: <span id="info-step">-</span></div>
+    <div>Black: <span id="info-black">-</span></div>
+    <div>White: <span id="info-white">-</span></div>
+  </div>
 
   <h2>Response</h2>
   <pre id="log"></pre>
