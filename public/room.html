@@ -2,64 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Reversi Room 0.1</title>
-  <link rel="stylesheet" href="css/room.css">
+  <title>Reversi Room (Minimal)</title>
 </head>
 <body>
-  <div id="nav">
-    <a href="index.html" id="back-to-lobby">← ロビーへ戻る</a>
-  </div>
+  <h1>Reversi Client Test</h1>
 
-  <h1>Reversi Room <span id="room-title" data-template="ID {id}">ID {id}</span></h1>
-
-  <div id="token">Your token: <span id="your-token">-</span></div>
-  <div id="seat">Your seat: <span id="your-seat">-</span></div>
-
-  <div class="control-row">
+  <div>
+    <button id="btn-join">JOIN</button>
+    <button id="btn-move">MOVE</button>
+    <button id="btn-leave">LEAVE</button>
     <button id="btn-reset">RESET</button>
-    <span class="url" id="url-reset" data-template="/{id}/reset">/{id}/reset</span>
+    <button id="btn-hb-start">HB Start</button>
+    <button id="btn-hb-stop">HB Stop</button>
   </div>
 
-  <div id="controls">
-    <div class="control-row">
-      <button id="btn-join">JOIN</button>
-      <span class="url" id="url-join" data-template="/{id}/join">/{id}/join</span>
-    </div>
-    <div class="control-row">
-      <button id="btn-move">MOVE</button>
-      <span class="url" id="url-move" data-template="/{id}/move">/{id}/move</span>
-      <span class="body">{"token":"...","x":
-        <select id="select-x">
-          <option value="0">0</option><option value="1">1</option>
-          <option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option>
-          <option value="6">6</option><option value="7">7</option>
-        </select>,
-        "y":
-        <select id="select-y">
-          <option value="0">0</option><option value="1">1</option>
-          <option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option>
-          <option value="6">6</option><option value="7">7</option>
-        </select>
-      }</span>
-    </div>
-    <div class="control-row">
-      <button id="btn-leave">LEAVE</button>
-      <span class="url" id="url-leave" data-template="/{id}/leave">/{id}/leave</span>
-      <span class="body">{"token":"..."}</span>
-    </div>
-    <div class="control-row">
-      <button id="btn-hb-start">Heartbeat Start</button>
-      <button id="btn-hb-stop">Heartbeat Stop</button>
-    </div>
-  </div>
+  <h2>Response</h2>
+  <pre id="log"></pre>
 
-  <!-- 盤面表示 -->
-  <h2>Board</h2>
-  <div id="board"></div>
-
-  <!-- スクリプト -->
-  <script src="js/room/main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>
