@@ -47,53 +47,92 @@
   <!-- ボード -->
   <div id="board"></div>
 
-<script>
-  const sse = new EventSource(`/${gameId}/sse`);
+  <script>
+    // ===== クエリパラメータ取得 =====
+    const params = new URLSearchParams(location.search);
+    const gameId = params.get("id") || "1";
+    const seat   = params.get("seat") || "";
 
-  function renderBoard(data) {
-    // ステータス類を表示
-    document.getElementById("status").innerText = "ステータス: " + data.status;
-    document.getElementById("step").innerText   = "ステップ: " + data.step;
-    document.getElementById("black").innerText  = "ブラック: " + data.black;
-    document.getElementById("white").innerText  = "ホワイト: " + data.white;
+    document.getElementById("qid").innerText   = "ID: " + gameId;
+    document.getElementById("qseat").innerText = "Seat: " + seat;
 
-    // ボード描画
-    const boardDiv = document.getElementById("board");
-    boardDiv.innerHTML = "";
-    const table = document.createElement("table");
+    // ===== SSE 接続 =====
+    const sse = new EventSource(`/${gameId}/sse`);
 
-    data.board.forEach((row, y) => {
-      const tr = document.createElement("tr");
-      row.split("").forEach((cell, x) => {
-        const td = document.createElement("td");
-        const a = document.createElement("a");
-        a.href = "#";
-        a.innerText = cell;
-        a.dataset.x = x;
-        a.dataset.y = y;
-        a.onclick = (e) => {
-          e.preventDefault();
-          alert(JSON.stringify({x: x, y: y}));
-        };
-        td.appendChild(a);
-        tr.appendChild(td);
+    function renderBoard(data) {
+      // ステータス類を表示
+      document.getElementById("status").innerText = "ステータス: " + data.status;
+      document.getElementById("step").innerText   = "ステップ: " + data.step;
+      document.getElementById("black").innerText  = "ブラック: " + data.black;
+      document.getElementById("white").innerText  = "ホワイト: " + data.white;
+
+      // ボードを描画
+      const boardDiv = document.getElementById("board");
+      boardDiv.innerHTML = "";
+      const table = document.createElement("table");
+
+      data.board.forEach((row, y) => {
+        const tr = document.createElement("tr");
+        row.split("").forEach((cell, x) => {
+          const td = document.createElement("td");
+          const a = document.createElement("a");
+          a.href = "#";
+          a.innerText = cell;
+          a.dataset.x = x;
+          a.dataset.y = y;
+          a.onclick = (e) => {
+            e.preventDefault();
+            alert(JSON.stringify({x: x, y: y}));
+          };
+          td.appendChild(a);
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
       });
-      table.appendChild(tr);
-    });
-    boardDiv.appendChild(table);
-  }
+      boardDiv.appendChild(table);
+    }
 
-  // ==== init を除外 ====
-  ["join","move","leave","reset"].forEach(ev => {
-    sse.addEventListener(ev, e => {
-      try {
-        const data = JSON.parse(e.data);
-        renderBoard(data);
-      } catch (err) {
-        console.error("JSON parse error", err, e.data);
-      }
+    // ==== SSE イベント（init は不要） ====
+    ["join","move","leave","reset"].forEach(ev => {
+      sse.addEventListener(ev, e => {
+        try {
+          const data = JSON.parse(e.data);
+          renderBoard(data);
+        } catch (err) {
+          console.error("JSON parse error", err, e.data);
+        }
+      });
     });
-  });
-</script>
+
+    // ===== ボタン処理 =====
+    let currentToken = null;
+
+    async function doPost(action, bodyObj) {
+      const res = await fetch(`/${gameId}/${action}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(bodyObj)
+      });
+      const json = await res.json();
+      document.getElementById("response").innerText =
+        "レスポンス: " + JSON.stringify(json);
+
+      // join の場合は token を保存・表示
+      if (action === "join" && json.token) {
+        currentToken = json.token;
+        document.getElementById("token").innerText = "トークン: " + currentToken;
+      }
+    }
+
+    document.getElementById("joinBtn").onclick = () => doPost("join", {});
+    document.getElementById("leaveBtn").onclick = () => {
+      if (!currentToken) {
+        alert("先にJoinしてください");
+        return;
+      }
+      doPost("leave", {token: currentToken});
+    };
+    document.getElementById("resetBtn").onclick = () => doPost("reset", {});
+  </script>
 </body>
 </html>
