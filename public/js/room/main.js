@@ -45,15 +45,26 @@ class RoomClient {
   }
 
   async join() {
+    const url = `/${this.id}/join`;
+    alert("JOIN fetch URL: " + url);
+
     try {
-      const res = await fetch(`/${this.id}/join`, { method: "POST" });
+      const res = await fetch(url, { method: "POST" });
       const text = await res.text();
       alert("JOIN response:\n" + text);
 
-      const data = JSON.parse(text);
-      this.token = data.token;
-      this.step = data.step;
-      document.getElementById("your-token").textContent = this.token;
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+
+      if (data.token) {
+        this.token = data.token;
+        this.step = data.step;
+        document.getElementById("your-token").textContent = this.token;
+      }
       this.logResponse("JOIN", data);
     } catch (err) {
       alert("JOIN error: " + err.message);
@@ -62,8 +73,11 @@ class RoomClient {
 
   async leave() {
     if (!this.token) return;
+    const url = `/${this.id}/leave`;
+    alert("LEAVE fetch URL: " + url);
+
     try {
-      const res = await fetch(`/${this.id}/leave`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: this.token })
@@ -71,7 +85,13 @@ class RoomClient {
       const text = await res.text();
       alert("LEAVE response:\n" + text);
 
-      const data = JSON.parse(text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+
       this.token = null;
       document.getElementById("your-token").textContent = "-";
       this.logResponse("LEAVE", data);
@@ -82,8 +102,11 @@ class RoomClient {
 
   async move(x, y) {
     if (!this.token) return;
+    const url = `/${this.id}/move`;
+    alert("MOVE fetch URL: " + url);
+
     try {
-      const res = await fetch(`/${this.id}/move`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: this.token, x, y })
@@ -91,7 +114,13 @@ class RoomClient {
       const text = await res.text();
       alert("MOVE response:\n" + text);
 
-      const data = JSON.parse(text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+
       if (data.board) this.renderBoard(data.board);
       if (data.step !== undefined) this.step = data.step;
       this.logResponse("MOVE", data);
@@ -101,15 +130,18 @@ class RoomClient {
   }
 
   async reset() {
+    const url = `/${this.id}/reset`;
+    alert("RESET fetch URL: " + url);
+
     try {
-      const res = await fetch(`/${this.id}/reset`, { method: "POST" });
+      const res = await fetch(url, { method: "POST" });
       const text = await res.text();
       alert("RESET response:\n" + text);
 
       try {
         const data = JSON.parse(text);
         this.logResponse("RESET", data);
-      } catch (e) {
+      } catch {
         this.logResponse("RESET (raw)", text);
       }
     } catch (err) {
@@ -119,8 +151,11 @@ class RoomClient {
 
   startHeartbeat() {
     if (this.hbTimer || !this.token) return;
+    const url = `/${this.id}/hb`;
+    alert("HB fetch URL: " + url);
+
     this.hbTimer = setInterval(() => {
-      fetch(`/${this.id}/hb`, {
+      fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: this.token })
@@ -147,7 +182,10 @@ class RoomClient {
   }
 
   connectSSE() {
-    this.sse = new EventSource(`/${this.id}/status`);
+    const url = `/${this.id}/status`;
+    alert("SSE connect URL: " + url);
+
+    this.sse = new EventSource(url);
 
     this.sse.addEventListener("join", ev => {
       const data = JSON.parse(ev.data);
