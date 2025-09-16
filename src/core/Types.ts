@@ -47,3 +47,5 @@ export interface MoveResult {
   ok: boolean;   // 成功 or 失敗
   reason?: "token_mismatch" | "illegal_pass" | "invalid_move";
 }}
+
+

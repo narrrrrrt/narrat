@@ -1,40 +1,32 @@
 import { Room } from "../core/Room";
+import { Seat } from "../core/Types";
 
-/*
- * leave
- * Room.leave() の本体を外出ししたもの
- * @param _ Room インスタンス
- * @param token ユーザーを識別するトークン
+/**
+ * Room.leave() の本体
+ * - 黒/白プレイヤーが抜けたら盤面リセット
+ * - 観戦者は observers 配列から削除
+ * @returns Seat ("black" | "white" | "observer")
  */
-export function leave(_: Room, token: string): void {
-  // ★ まず activity からは無差別に削除
-  _.activity.delete(token)
+export function leave(_: Room, token: string): Seat {
+  _.activity.delete(token);
 
-  // --- 黒がこのトークンなら解除 ---
   if (_.black === token) {
     _.black = null;
     _.status = "leave";
     _.step++;
-    _.boardData = Array(8).fill("--------"); // 全マスをハイフン
-    return;
+    _.boardData = Array(8).fill("--------");
+    return "black";
   }
 
-  // --- 白がこのトークンなら解除 ---
   if (_.white === token) {
     _.white = null;
     _.status = "leave";
     _.step++;
     _.boardData = Array(8).fill("--------");
-    return;
+    return "white";
   }
 
-  // --- observer の場合 ---
-  const idx = _.observers.indexOf(token);
-  if (idx !== -1) {
-    _.observers.splice(idx, 1);
-    // 観戦者退出なのでステータスやボードは変更なし
-    return;
-  }
-
-  _.scheduleAlarm();
+  _.observers = _.observers.filter(t => t !== token);
+  
+  return "observer";
 }

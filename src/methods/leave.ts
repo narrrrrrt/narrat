@@ -1,4 +1,4 @@
-import { HandlerContext, MethodResult, SSEMessage } from "../core/Types";
+import { HandlerContext, MethodResult, SSEMessage, Seat } from "../core/Types";
 
 export async function leaveHandler(
   _: HandlerContext,
@@ -9,9 +9,9 @@ export async function leaveHandler(
   if (!token) {
     return {
       response: {
-        ok: false as boolean,
-        step: undefined,
+        ok: false,
         error: "Missing token",
+        step: undefined,
         role: undefined,
         token: undefined,
       },
@@ -19,33 +19,35 @@ export async function leaveHandler(
     } as MethodResult;
   }
 
-  // Room.leave() で黒/白/observer の実データを更新
-  _.room.leave(token);
-  await _.room.save();
+  // ★ Room.leave() が Seat を返す
+  const seat: Seat = _.room.leave(token);
 
-  // activity から削除 → 空ならアラーム停止
   if (_.room.deleteActivityToken(token)) {
-    await _.state.storage.deleteAlarm(); 
+    await _.state.storage.deleteAlarm();
   }
 
-  const broadcast: SSEMessage = {
-    event: "leave",
-    data: {
-      status: _.room.status,
-      step: _.room.step,
-      black: !!_.room.black,
-      white: !!_.room.white,
-      board: _.room.boardData,
-    },
-  };
+  let broadcast: SSEMessage | undefined;
+  if (seat !== "observer") {
+    // 観戦者以外の退出時のみ broadcast
+    broadcast = {
+      event: "leave",
+      data: {
+        status: _.room.status,
+        step: _.room.step,
+        black: !!_.room.black,
+        white: !!_.room.white,
+        board: _.room.boardData,
+      },
+    };
+  }
 
   return {
-    broadcast,
+    ...(broadcast ? { broadcast } : {}),
     response: {
-      ok: true as boolean,
+      ok: true,
       step: _.room.step,
+      role: seat,
       error: undefined,
-      role: undefined,
       token: undefined,
     },
     status: 200,
