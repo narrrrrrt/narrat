@@ -123,7 +123,7 @@
     // === move 専用処理（終了とパスを分離） ===
     function handleMove(hasMove, data) {
       const flatBoard = data.board.join("");
-      const hasEmpty = flatBoard.includes("-"); // 空きマスが残っているか？
+      const hasEmpty = /[-*]/.test(flatBoard); // 空きマスが残っているか？
 
       if (!hasMove) {
         if (!hasEmpty) {
