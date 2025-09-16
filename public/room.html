@@ -177,9 +177,9 @@
       document.getElementById("action").innerText = "アクション: move";
       const hasMove = renderBoard(data);
       //handleMove(hasMove, data);
-      setTimeout(() => {
-        handleMove(hasMove, data);  // これで描画反映の後にalertが出る
-      }, 0);
+requestAnimationFrame(() => {
+  handleMove(hasMove, data); // この中の alert は描画反映後に出る
+});
     });
 
     // ==== SSE イベント: leave ====
