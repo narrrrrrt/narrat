@@ -120,32 +120,32 @@
       return hasMove; // 合法手があるかどうか返す
     }
 
-    // === move 専用処理（合法手なしの場合はパス or 終了処理） ===
+    // === move 専用処理（終了とパスを分離） ===
     function handleMove(hasMove, data) {
       const flatBoard = data.board.join("");
-      const hasEmpty = flatBoard.includes("-"); // 空きマスが残っているか？
+      const hasEmpty = /[-*]/.test(flatBoard); // 空きマスが残っているか？
 
-      // === 終了判定（両者で実行する） ===
-      if (!hasMove && !hasEmpty) {
-        const blackCount = (flatBoard.match(/B/g) || []).length;
-        const whiteCount = (flatBoard.match(/W/g) || []).length;
+      if (!hasMove) {
+        if (!hasEmpty) {
+          // === 終了処理（両方で実行） ===
+          const blackCount = (flatBoard.match(/B/g) || []).length;
+          const whiteCount = (flatBoard.match(/W/g) || []).length;
 
-        let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
-        if (blackCount > whiteCount) {
-          msg += "ブラック勝ち!";
-        } else if (whiteCount > blackCount) {
-          msg += "ホワイト勝ち!";
-        } else {
-          msg += "引き分け!";
+          let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
+          if (blackCount > whiteCount) {
+            msg += "ブラック勝ち!";
+          } else if (whiteCount > blackCount) {
+            msg += "ホワイト勝ち!";
+          } else {
+            msg += "引き分け!";
+          }
+          alert(msg);
+          return;
+        } else if (seat === data.status) {
+          // === パス処理（自分の番だけ実行） ===
+          alert("打つ手がありません");
+          doPost("move", { x: 3, y: 3, token: currentToken });
         }
-        alert(msg);
-        return;
-      }
-
-      // === パス処理（自分の手番だけ） ===
-      if (!hasMove && seat === data.status) {
-        alert("打つ手がありません");
-        doPost("move", { x: 3, y: 3, token: currentToken });
       }
     }
 
