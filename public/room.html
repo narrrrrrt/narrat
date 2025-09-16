@@ -125,25 +125,25 @@
       const flatBoard = data.board.join("");
       const hasEmpty = flatBoard.includes("-"); // 空きマスが残っているか？
 
-      if (!hasMove && seat === data.status) {
-        if (!hasEmpty) {
-          // ===== 終了処理 =====
-          const blackCount = (flatBoard.match(/B/g) || []).length;
-          const whiteCount = (flatBoard.match(/W/g) || []).length;
+      // === 終了判定（両者で実行する） ===
+      if (!hasMove && !hasEmpty) {
+        const blackCount = (flatBoard.match(/B/g) || []).length;
+        const whiteCount = (flatBoard.match(/W/g) || []).length;
 
-          let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
-          if (blackCount > whiteCount) {
-            msg += "ブラック勝ち!";
-          } else if (whiteCount > blackCount) {
-            msg += "ホワイト勝ち!";
-          } else {
-            msg += "引き分け!";
-          }
-          alert(msg);
-          return;
+        let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
+        if (blackCount > whiteCount) {
+          msg += "ブラック勝ち!";
+        } else if (whiteCount > blackCount) {
+          msg += "ホワイト勝ち!";
+        } else {
+          msg += "引き分け!";
         }
+        alert(msg);
+        return;
+      }
 
-        // ===== パス処理 =====
+      // === パス処理（自分の手番だけ） ===
+      if (!hasMove && seat === data.status) {
         alert("打つ手がありません");
         doPost("move", { x: 3, y: 3, token: currentToken });
       }

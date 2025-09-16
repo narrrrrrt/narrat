@@ -120,11 +120,31 @@
       return hasMove; // 合法手があるかどうか返す
     }
 
-    // === move 専用処理（合法手なしの場合はパス処理） ===
-    function handleMove(hasMove) {
-      if (!hasMove && seat === document.getElementById("status").innerText.replace("ステータス: ", "")) {
+    // === move 専用処理（合法手なしの場合はパス or 終了処理） ===
+    function handleMove(hasMove, data) {
+      const flatBoard = data.board.join("");
+      const hasEmpty = flatBoard.includes("-"); // 空きマスが残っているか？
+
+      if (!hasMove && seat === data.status) {
+        if (!hasEmpty) {
+          // ===== 終了処理 =====
+          const blackCount = (flatBoard.match(/B/g) || []).length;
+          const whiteCount = (flatBoard.match(/W/g) || []).length;
+
+          let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
+          if (blackCount > whiteCount) {
+            msg += "ブラック勝ち!";
+          } else if (whiteCount > blackCount) {
+            msg += "ホワイト勝ち!";
+          } else {
+            msg += "引き分け!";
+          }
+          alert(msg);
+          return;
+        }
+
+        // ===== パス処理 =====
         alert("打つ手がありません");
-        // 擬似ムーブ（中央座標を固定で送る例: (3,3)）
         doPost("move", { x: 3, y: 3, token: currentToken });
       }
     }
@@ -141,7 +161,7 @@
       const data = JSON.parse(e.data);
       document.getElementById("action").innerText = "アクション: move";
       const hasMove = renderBoard(data);
-      handleMove(hasMove);
+      handleMove(hasMove, data);
     });
 
     // ==== SSE イベント: leave ====
