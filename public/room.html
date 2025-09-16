@@ -108,28 +108,39 @@
     }
 
     // ==== SSE イベント（init は除外） ====
-    ["join","move","leave","reset"].forEach(ev => {
-      sse.addEventListener(ev, async (e) => {
+    ["join","move","reset"].forEach(ev => {
+      sse.addEventListener(ev, (e) => {
         try {
           const data = JSON.parse(e.data);
-          // アクション名を表示
           document.getElementById("action").innerText = "アクション: " + ev;
-          // ボード更新
           renderBoard(data);
-
-          // === leave イベント専用処理 ===
-          if (ev === "leave") {
-            alert("対戦相手が退出しました。");
-            if (currentToken) {
-              // 自分も Leave → Join
-              await doPost("leave", { token: currentToken });
-              await doPost("join", { seat: seat });
-            }
-          }
         } catch (err) {
           console.error("JSON parse error", err, e.data);
         }
       });
+    });
+
+    // ==== leave イベント専用 ====
+    sse.addEventListener("leave", async (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        document.getElementById("action").innerText = "アクション: leave";
+        renderBoard(data);
+
+        // 自分はまだ在席していて、相手が不在になった場合のみ通知
+        if (seat && data[seat] === true) {
+          const opponent = (seat === "black") ? "white" : "black";
+          if (data[opponent] === false) {
+            alert("対戦相手が退出しました。");
+            if (currentToken) {
+              await doPost("leave", { token: currentToken });
+              await doPost("join", { seat: seat });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("JSON parse error", err, e.data);
+      }
     });
 
     // ===== ボタン処理 =====
@@ -145,7 +156,6 @@
       document.getElementById("response").innerText =
         "レスポンス:\n" + JSON.stringify(json, null, 2);
 
-      // === レスポンス処理 ===
       if (json.ok) {
         if (typeof json.step === "number") {
           currentStep = json.step;
