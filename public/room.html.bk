@@ -77,6 +77,9 @@
       document.getElementById("black").innerText  = "ブラック: " + data.black;
       document.getElementById("white").innerText  = "ホワイト: " + data.white;
 
+      // 座席と手番が一致しているかどうか判定
+      const showMoves = (seat === data.status);
+
       // ボードを描画
       const boardDiv = document.getElementById("board");
       boardDiv.innerHTML = "";
@@ -85,6 +88,9 @@
       data.board.forEach((row, y) => {
         const tr = document.createElement("tr");
         row.split("").forEach((cell, x) => {
+          if (!showMoves && cell === "*") {
+            cell = "-"; // 非手番側には合法手を隠す
+          }
           const td = document.createElement("td");
           const a = document.createElement("a");
           a.href = "#";
