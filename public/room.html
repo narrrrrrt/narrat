@@ -120,15 +120,6 @@
       return hasMove; // 合法手があるかどうか返す
     }
 
-    // === leave 専用処理 ===
-    async function handleLeave() {
-      alert("対戦相手が退出しました。");
-      if (currentToken) {
-        await doPost("leave", { token: currentToken });
-        await doPost("join", { seat: seat });
-      }
-    }
-
     // === move 専用処理（合法手なしの場合はパス処理） ===
     function handleMove(hasMove) {
       if (!hasMove && seat === document.getElementById("status").innerText.replace("ステータス: ", "")) {
@@ -158,9 +149,14 @@
       const data = JSON.parse(e.data);
       document.getElementById("action").innerText = "アクション: leave";
       renderBoard(data);
-      // 自分の座席がまだ true なら相手が抜けた
+
+      // 自分の座席がまだ true なら、相手が抜けた
       if (seat && data[seat] === true) {
-        await handleLeave();
+        alert("対戦相手が退出しました。");
+        if (currentToken) {
+          await doPost("leave", { token: currentToken });
+          await doPost("join", { seat: seat });
+        }
       }
     });
 
