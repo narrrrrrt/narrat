@@ -176,7 +176,10 @@
       const data = JSON.parse(e.data);
       document.getElementById("action").innerText = "アクション: move";
       const hasMove = renderBoard(data);
-      handleMove(hasMove, data);
+      //handleMove(hasMove, data);
+      setTimeout(() => {
+        handleMove(hasMove, data);  // これで描画反映の後にalertが出る
+      }, 0);
     });
 
     // ==== SSE イベント: leave ====
