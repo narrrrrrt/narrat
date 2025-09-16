@@ -138,27 +138,37 @@
       }
     }
 
-    // ==== SSE イベント ====
-    ["join","move","leave","reset"].forEach(ev => {
-      sse.addEventListener(ev, async (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          document.getElementById("action").innerText = "アクション: " + ev;
-          const hasMove = renderBoard(data);
+    // ==== SSE イベント: join ====
+    sse.addEventListener("join", e => {
+      const data = JSON.parse(e.data);
+      document.getElementById("action").innerText = "アクション: join";
+      renderBoard(data);
+    });
 
-          if (ev === "leave") {
-            // 自分が抜けたときはスキップ
-            if (!(seat && data[seat] === true)) {
-              await handleLeave();
-            }
-          }
-          if (ev === "move") {
-            handleMove(hasMove);
-          }
-        } catch (err) {
-          console.error("JSON parse error", err, e.data);
-        }
-      });
+    // ==== SSE イベント: move ====
+    sse.addEventListener("move", e => {
+      const data = JSON.parse(e.data);
+      document.getElementById("action").innerText = "アクション: move";
+      const hasMove = renderBoard(data);
+      handleMove(hasMove);
+    });
+
+    // ==== SSE イベント: leave ====
+    sse.addEventListener("leave", async e => {
+      const data = JSON.parse(e.data);
+      document.getElementById("action").innerText = "アクション: leave";
+      renderBoard(data);
+      // 自分の座席がまだ true なら相手が抜けた
+      if (seat && data[seat] === true) {
+        await handleLeave();
+      }
+    });
+
+    // ==== SSE イベント: reset ====
+    sse.addEventListener("reset", e => {
+      const data = JSON.parse(e.data);
+      document.getElementById("action").innerText = "アクション: reset";
+      renderBoard(data);
     });
 
     // ===== ボタン処理 =====
