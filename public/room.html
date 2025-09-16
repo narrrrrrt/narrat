@@ -147,7 +147,10 @@
           const hasMove = renderBoard(data);
 
           if (ev === "leave") {
-            await handleLeave();
+            // 自分が抜けたときはスキップ
+            if (!(seat && data[seat] === true)) {
+              await handleLeave();
+            }
           }
           if (ev === "move") {
             handleMove(hasMove);
