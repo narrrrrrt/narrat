@@ -109,13 +109,23 @@
 
     // ==== SSE イベント（init は除外） ====
     ["join","move","leave","reset"].forEach(ev => {
-      sse.addEventListener(ev, e => {
+      sse.addEventListener(ev, async (e) => {
         try {
           const data = JSON.parse(e.data);
           // アクション名を表示
           document.getElementById("action").innerText = "アクション: " + ev;
           // ボード更新
           renderBoard(data);
+
+          // === leave イベント専用処理 ===
+          if (ev === "leave") {
+            alert("対戦相手が退出しました。");
+            if (currentToken) {
+              // 自分も Leave → Join
+              await doPost("leave", { token: currentToken });
+              await doPost("join", { seat: seat });
+            }
+          }
         } catch (err) {
           console.error("JSON parse error", err, e.data);
         }
