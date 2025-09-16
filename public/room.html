@@ -70,6 +70,7 @@
     // ===== SSE 接続 =====
     const sse = new EventSource(`/${gameId}/sse`);
 
+    // === ボード描画（合法手の有無を返す） ===
     function renderBoard(data) {
       // ステータス類を表示
       document.getElementById("status").innerText = "ステータス: " + data.status;
@@ -79,6 +80,7 @@
 
       // 座席と手番が一致しているかどうか判定
       const showMoves = (seat === data.status);
+      let hasMove = false;
 
       // ボードを描画
       const boardDiv = document.getElementById("board");
@@ -88,6 +90,9 @@
       data.board.forEach((row, y) => {
         const tr = document.createElement("tr");
         row.split("").forEach((cell, x) => {
+          if (showMoves && cell === "*") {
+            hasMove = true; // 自分の手番で合法手あり
+          }
           if (!showMoves && cell === "*") {
             cell = "-"; // 非手番側には合法手を隠す
           }
@@ -111,42 +116,46 @@
         table.appendChild(tr);
       });
       boardDiv.appendChild(table);
+
+      return hasMove; // 合法手があるかどうか返す
     }
 
-    // ==== SSE イベント（init は除外） ====
-    ["join","move","reset"].forEach(ev => {
-      sse.addEventListener(ev, (e) => {
+    // === leave 専用処理 ===
+    async function handleLeave() {
+      alert("対戦相手が退出しました。");
+      if (currentToken) {
+        await doPost("leave", { token: currentToken });
+        await doPost("join", { seat: seat });
+      }
+    }
+
+    // === move 専用処理（合法手なしの場合はパス処理） ===
+    function handleMove(hasMove) {
+      if (!hasMove && seat === document.getElementById("status").innerText.replace("ステータス: ", "")) {
+        alert("打つ手がありません");
+        // 擬似ムーブ（中央座標を固定で送る例: (3,3)）
+        doPost("move", { x: 3, y: 3, token: currentToken });
+      }
+    }
+
+    // ==== SSE イベント ====
+    ["join","move","leave","reset"].forEach(ev => {
+      sse.addEventListener(ev, async (e) => {
         try {
           const data = JSON.parse(e.data);
           document.getElementById("action").innerText = "アクション: " + ev;
-          renderBoard(data);
+          const hasMove = renderBoard(data);
+
+          if (ev === "leave") {
+            await handleLeave();
+          }
+          if (ev === "move") {
+            handleMove(hasMove);
+          }
         } catch (err) {
           console.error("JSON parse error", err, e.data);
         }
       });
-    });
-
-    // ==== leave イベント専用 ====
-    sse.addEventListener("leave", async (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        document.getElementById("action").innerText = "アクション: leave";
-        renderBoard(data);
-
-        // 自分はまだ在席していて、相手が不在になった場合のみ通知
-        if (seat && data[seat] === true) {
-          const opponent = (seat === "black") ? "white" : "black";
-          if (data[opponent] === false) {
-            alert("対戦相手が退出しました。");
-            if (currentToken) {
-              await doPost("leave", { token: currentToken });
-              await doPost("join", { seat: seat });
-            }
-          }
-        }
-      } catch (err) {
-        console.error("JSON parse error", err, e.data);
-      }
     });
 
     // ===== ボタン処理 =====
@@ -162,6 +171,7 @@
       document.getElementById("response").innerText =
         "レスポンス:\n" + JSON.stringify(json, null, 2);
 
+      // === レスポンス処理 ===
       if (json.ok) {
         if (typeof json.step === "number") {
           currentStep = json.step;
