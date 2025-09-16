@@ -175,7 +175,8 @@
     sse.addEventListener("move", e => {
       const data = JSON.parse(e.data);
       document.getElementById("action").innerText = "アクション: move";
-      const hasMove = handleMove(renderBoard(data), data);
+      const hasMove = renderBoard(data);
+      handleMove(hasMove, data);
     });
 
     // ==== SSE イベント: leave ====
