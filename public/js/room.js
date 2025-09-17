@@ -5,15 +5,15 @@ let hbTimer = null;
 let i18n = {};
 let lang = "en";
 let lastData = null;
-let currentStep = -1; // ステップ追跡
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
   const res = await fetch("/i18n/i18n.json");
   i18n = await res.json();
+
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
-  if (!i18n[lang]) lang = "en";
+  if (!i18n["game_over"][lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
@@ -28,18 +28,16 @@ function t(key, vars = {}) {
 function showModal(msg, callback) {
   document.getElementById("modalText").innerText = msg;
   const modal = document.getElementById("modal");
-  modal.classList.remove("hidden");
+  modal.style.display = "flex";
   document.getElementById("modalOk").innerText = t("ok");
   document.getElementById("modalOk").onclick = () => {
-    modal.classList.add("hidden");
+    modal.style.display = "none";
     if (callback) callback();
   };
 }
 
 // ===== ボード描画 =====
 function renderBoard(data) {
-  currentStep = data.step; // ステップ更新
-
   document.getElementById("status").innerText = {
     black: t("turn_black"),
     white: t("turn_white"),
@@ -58,19 +56,22 @@ function renderBoard(data) {
     const tr = document.createElement("tr");
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
+
       if (cell === "B") {
-        td.innerText = "●";
-        td.className = "black";
+        const stone = document.createElement("div");
+        stone.className = "stone black";
+        td.appendChild(stone);
       } else if (cell === "W") {
-        td.innerText = "○";
-        td.className = "white";
+        const stone = document.createElement("div");
+        stone.className = "stone white";
+        td.appendChild(stone);
       } else if (cell === "*" && showMoves) {
-        td.innerText = "●";
-        td.className = "move";
+        const move = document.createElement("div");
+        move.className = "move";
+        td.appendChild(move);
         hasMove = true;
-      } else {
-        td.innerText = " ";
       }
+
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
         doPost("move",{x,y,token:currentToken});
@@ -127,14 +128,15 @@ async function doPost(action,body) {
         seat === "white" ? t("you_white") :
         t("you_observer");
 
-      // 🔹 join OK のとき lastData を消さない
-      if (lastData && lastData.step >= 0) {
-        renderBoard(lastData);
-      }
-
-      // 🔹 HB 開始（1秒間隔）
+      // ハートビート開始（最初だけ）
       if (!hbTimer) {
         hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),1000);
+      }
+
+      // もし先に SSE が来て lastData に残ってたら描画
+      if (lastData) {
+        renderBoard(lastData);
+        lastData=null;
       }
     }
   } else if (json.error) {
@@ -167,27 +169,18 @@ async function doPost(action,body) {
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
     lastData=data;
-    renderBoard(data);
+    if (currentToken) renderBoard(data);
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    lastData=data;
     const hasMove=renderBoard(data);
     requestAnimationFrame(()=>handleMove(hasMove,data));
   });
-  sse.addEventListener("leave", async e => {
-    const data = JSON.parse(e.data);
-    lastData = data;
+  sse.addEventListener("leave",e=>{
+    const data=JSON.parse(e.data);
     renderBoard(data);
-
-    // 自分が残っていて相手がいなくなった場合だけ通知
-    if (seat && data[seat] === true) {
-      showModal(t("leave"), async () => {
-        if (currentToken) {
-          await doPost("leave", { token: currentToken });
-          await doPost("join", { seat: seat }); // 🔹 入り直し
-        }
-      });
+    if (seat && data[seat]===true) {
+      showModal(t("leave"));
     }
   });
 
