@@ -1,54 +1,93 @@
-/* === 盤面 === */
-table {
-  border-collapse: collapse;
-  margin: 20px auto;
-  background-color: #008000; /* オセロ盤らしい緑 */
+/* ===== room.css ===== */
+
+/* 全体 */
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
 }
-td {
+
+/* タイトル */
+h1 {
+  margin-top: 20px;
+}
+
+/* ボード */
+#board table {
+  margin: 20px auto;
+  border-collapse: collapse;
+  background: #006400; /* 濃い緑 */
+}
+
+#board td {
   width: 40px;
   height: 40px;
   text-align: center;
   vertical-align: middle;
-  border: 1px solid #006400;
+  border: 1px solid #004d00; /* 緑の濃い線 */
   font-size: 28px;
   cursor: pointer;
 }
 
-/* 黒石 */
-td.black {
-  background-color: black;
-  border-radius: 50%;
-  color: transparent;
+/* 石 */
+.black {
+  color: black;
 }
 
-/* 白石 */
-td.white {
-  background-color: white;
-  border-radius: 50%;
-  border: 2px solid black;
-  color: transparent;
+.white {
+  color: white;
+  text-shadow: 0 0 2px #000; /* 白石を見やすく */
 }
 
-/* 合法手（オレンジの小さなドット） */
-td.move {
-  position: relative;
-}
-td.move::after {
-  content: "";
-  display: block;
-  width: 12px;
-  height: 12px;
-  background-color: orange;
-  border-radius: 50%;
-  margin: auto;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* 合法手マーカー */
+.move {
+  color: orange;
+  font-size: 18px; /* 少し小さめ */
 }
 
-/* === モーダル === */
-#modal {
+/* ステータス表示 */
+#status {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+/* ロビーへボタン */
+#lobbyBtn {
+  margin: 10px;
+  padding: 6px 12px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: #eee;
+  cursor: pointer;
+}
+
+#lobbyBtn:hover {
+  background: #ddd;
+}
+
+/* ハートビートボタン */
+#hbStart, #hbStop {
+  margin: 5px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #888;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+#hbStop {
+  background: #ffecec;
+  border-color: #ff7777;
+}
+
+#hbStop:hover {
+  background: #ffcccc;
+}
+
+/* ===== モーダル ===== */
+.modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -61,46 +100,31 @@ td.move::after {
   z-index: 1000;
 }
 
-#modal.hidden {
+.modal.hidden {
   display: none;
 }
 
-#modalContent {
-  background: white;
+.modal-content {
+  background: #fff;  /* 透け防止 */
+  color: #000;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 6px;
   text-align: center;
-  max-width: 300px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-#modalText {
-  margin-bottom: 20px;
-  font-size: 16px;
+  min-width: 250px;
+  max-width: 400px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 #modalOk {
-  padding: 8px 16px;
+  margin-top: 15px;
+  padding: 6px 12px;
   background: #007bff;
-  color: white;
   border: none;
+  color: white;
   border-radius: 4px;
   cursor: pointer;
 }
 
 #modalOk:hover {
   background: #0056b3;
-}
-
-/* === 上部ボタン類 === */
-#lobbyBtn, #hbStop {
-  margin: 10px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  background: #f0f0f0;
-  cursor: pointer;
-}
-#lobbyBtn:hover, #hbStop:hover {
-  background: #ddd;
 }

@@ -127,7 +127,7 @@ async function doPost(action,body) {
 
       // ハートビート開始（初回だけ）
       if (!hbTimer) {
-        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
+        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),2900);
       }
 
       // join 成功後、もしSSEが既にデータ受信していれば描画
