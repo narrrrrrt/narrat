@@ -56,17 +56,12 @@ function renderBoard(data) {
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
       if (cell === "B") {
-        td.innerText = "●";
         td.className = "black";
       } else if (cell === "W") {
-        td.innerText = "○";
         td.className = "white";
       } else if (cell === "*" && showMoves) {
-        td.innerText = "●";
         td.className = "move";
         hasMove = true;
-      } else {
-        td.innerText = " ";
       }
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
@@ -96,16 +91,13 @@ function endGame(flatBoard) {
 function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
 
-  // 黒/白それぞれに合法手があるかを判定
-  const blackHas = data.board.some(row => row.includes("*")) && data.status === "black";
-  const whiteHas = data.board.some(row => row.includes("*")) && data.status === "white";
-
   if (!hasMove) {
-    if (!blackHas && !whiteHas) {
-      // 双方とも合法手なし → 終了
+    const nextStatus = data.status === "black" ? "white" : "black";
+    const opponentHasMove = flatBoard.includes("*") && seat !== data.status;
+
+    if (!opponentHasMove) {
       endGame(flatBoard);
     } else if (seat === data.status) {
-      // 自分の番だけ合法手なし → パス
       showModal(t("no_moves"),()=>{
         doPost("move",{x:3,y:3,token:currentToken});
       });
