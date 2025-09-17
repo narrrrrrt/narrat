@@ -144,7 +144,7 @@ async function doPost(action,body) {
 
 function scheduleRetry(data) {
   setTimeout(function check() {
-    if (data.step > currentStep) {
+    if (currentToken) {
       renderBoard(data);
       currentStep = data.step;
       // 処理が終わったので何もしない（タイマーはここで終わる）
@@ -179,31 +179,16 @@ function scheduleRetry(data) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    if (data.step > currentStep) {
-      currentStep = data.step;
-      renderBoard(data);
-    } else {
-      scheduleRetry(data);
-    }
+    scheduleRetry(data);
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    if (data.step >= currentStep) {
-      currentStep = data.step;
-      const hasMove=renderBoard(data);
-      requestAnimationFrame(()=>handleMove(hasMove,data));
-    } else {
-      scheduleRetry(data);
-    }
+    scheduleRetry(data);
   });
   sse.addEventListener("leave",e=>{
     const data=JSON.parse(e.data);
-    if (data.step > currentStep) {
-      currentStep = data.step;
-      renderBoard(data);
-    } else {
-      scheduleRetry(data);
-    }
+    scheduleRetry(data);
+
     if (seat && data[seat]===true) {
       showModal(t("leave"),async()=>{
         if (currentToken) await doPost("leave",{token:currentToken});
