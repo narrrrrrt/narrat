@@ -128,7 +128,7 @@ async function doPost(action,body) {
 const params = new URLSearchParams(location.search);
 const gameId = params.get("id") || "1";
 
-window.onload = async () => {
+//window.onload = async () => {
 alert(2);
   await loadI18n();
 
@@ -174,4 +174,4 @@ alert(2);
 
   // 自動 join
   doPost("join",{seat:seat});
-};
+//};
