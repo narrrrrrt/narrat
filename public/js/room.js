@@ -1,4 +1,6 @@
-let seat = "";
+//let seat = "";
+let seat = new URLSearchParams(location.search).get("seat") || "observer";
+const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
@@ -129,9 +131,9 @@ async function doPost(action,body) {
 }
 
 // ===== 初期化 =====
-const params = new URLSearchParams(location.search);
-const gameId = params.get("id") || "1";
-seat = params.get("seat") || "observer"; 
+//const params = new URLSearchParams(location.search);
+//const gameId = params.get("id") || "1";
+//seat = params.get("seat") || "observer"; 
 
 // ==== 即時実行で初期化 ====
 (async () => {
