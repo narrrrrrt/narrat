@@ -6,7 +6,7 @@ let lang = "en";
 alert(1);
 // ===== i18n 読み込み =====
 async function loadI18n() {
-  const res = await fetch("i18n/i18n.json");
+  const res = await fetch("/i18n/i18n.json");
   i18n = await res.json();
 
   const params = new URLSearchParams(location.search);
@@ -133,7 +133,7 @@ alert(2);
 
   await loadI18n();
 alert(3);
-/*
+
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
   document.getElementById("hbStart").innerText = t("hb_start");
@@ -177,4 +177,3 @@ alert(3);
   // 自動 join
   doPost("join",{seat:seat});
 //};
-*/
