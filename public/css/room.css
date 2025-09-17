@@ -30,7 +30,7 @@ button {
   position: relative;
 }
 
-/* 石描画 (CSS擬似要素で表現) */
+/* 石描画 */
 #board td.black::after,
 #board td.white::after,
 #board td.move::after {
@@ -69,16 +69,24 @@ button {
 #modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6); /* 少し濃いスモーク */
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
+
+  /* 背景をクリックできないようにする */
+  pointer-events: none;
 }
 #modalContent {
   background: white;
   padding: 20px;
   border-radius: 8px;
   text-align: center;
+  min-width: 200px;
+
+  /* コンテンツ部分は操作可能 */
+  pointer-events: auto;
 }
 #modalOk {
   margin-top: 10px;
