@@ -136,7 +136,7 @@ async function doPost(action,body) {
       }
 
       // joinレスポンスが勝ってたら描画
-      if (lastData && lastData.step >= currentStep) {
+      if (lastData && lastData.step > currentStep) {
         currentStep = lastData.step;
         renderBoard(lastData);
       }

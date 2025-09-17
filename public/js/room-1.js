@@ -1,9 +1,11 @@
+// ===== グローバル =====
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
+let currentStep = 0;
 let lastData = null;
 
 // ===== i18n 読み込み =====
@@ -28,10 +30,10 @@ function t(key, vars = {}) {
 function showModal(msg, callback) {
   document.getElementById("modalText").innerText = msg;
   const modal = document.getElementById("modal");
-  modal.style.display = "flex";
+  modal.classList.remove("hidden");
   document.getElementById("modalOk").innerText = t("ok");
   document.getElementById("modalOk").onclick = () => {
-    modal.style.display = "none";
+    modal.classList.add("hidden");
     if (callback) callback();
   };
 }
@@ -128,15 +130,15 @@ async function doPost(action,body) {
         seat === "white" ? t("you_white") :
         t("you_observer");
 
-      // ハートビート開始（最初だけ）
+      // ハートビート開始（最初のJoin時だけ）
       if (!hbTimer) {
-        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),1000);
+        hbTimer = setInterval(()=>doPost("hb",{token:currentToken}),1000);
       }
 
-      // もし先に SSE が来て lastData に残ってたら描画
-      if (lastData) {
+      // joinレスポンスが勝ってたら描画
+      if (lastData && lastData.step >= currentStep) {
+        currentStep = lastData.step;
         renderBoard(lastData);
-        //lastData=null;
       }
     }
   } else if (json.error) {
@@ -168,21 +170,35 @@ async function doPost(action,body) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    lastData=data;
-    if (currentToken) renderBoard(data);
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      renderBoard(data);
+    } else {
+      lastData = data;
+    }
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    const hasMove=renderBoard(data);
-    requestAnimationFrame(()=>handleMove(hasMove,data));
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      const hasMove=renderBoard(data);
+      requestAnimationFrame(()=>handleMove(hasMove,data));
+    } else {
+      lastData = data;
+    }
   });
   sse.addEventListener("leave",e=>{
-    const data = JSON.parse(e.data);
-    renderBoard(data);
-    if (seat && data[seat] === true) {
-      showModal(t("leave"), async () => {
+    const data=JSON.parse(e.data);
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      renderBoard(data);
+    } else {
+      lastData = data;
+    }
+    if (seat && data[seat]===true) {
+      showModal(t("leave"),async()=>{
         if (currentToken) await doPost("leave",{token:currentToken});
-        await doPost("join",{seat:seat});
+        doPost("join",{seat:seat});
       });
     }
   });
