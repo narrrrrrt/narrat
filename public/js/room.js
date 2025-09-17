@@ -131,7 +131,7 @@ const gameId = params.get("id") || "1";
 //window.onload = async () => {
 alert(2);
 
-  await loadI18n();
+  //await loadI18n();
 alert(3);
 
   document.getElementById("title").innerText = t("title",{room:gameId});
