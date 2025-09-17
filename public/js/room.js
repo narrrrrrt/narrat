@@ -4,13 +4,13 @@ let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
-let latestData = null; // SSE先行対策用に保持
+let lastData = null;
+let currentStep = -1; // ステップ追跡
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
   const res = await fetch("/i18n/i18n.json");
   i18n = await res.json();
-
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
   if (!i18n[lang]) lang = "en";
@@ -38,6 +38,8 @@ function showModal(msg, callback) {
 
 // ===== ボード描画 =====
 function renderBoard(data) {
+  currentStep = data.step; // ステップ更新
+
   document.getElementById("status").innerText = {
     black: t("turn_black"),
     white: t("turn_white"),
@@ -96,10 +98,10 @@ function endGame(flatBoard) {
 // ===== move 処理 =====
 function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
+  const hasEmpty = /[-*]/.test(flatBoard);
 
   if (!hasMove) {
-    const anyLegal = data.board.some(row => row.includes("*"));
-    if (!anyLegal) {
+    if (!hasEmpty) {
       endGame(flatBoard);
     } else if (seat === data.status) {
       showModal(t("no_moves"),()=>{
@@ -125,16 +127,14 @@ async function doPost(action,body) {
         seat === "white" ? t("you_white") :
         t("you_observer");
 
-      // ハートビート開始（初回だけ）
-      if (!hbTimer) {
-        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),1000);
+      // 🔹 join OK のとき lastData を消さない
+      if (lastData && lastData.step >= 0) {
+        renderBoard(lastData);
       }
 
-      // join 成功後、もしSSEが既にデータ受信していれば描画
-      if (latestData) {
-        const hasMove = renderBoard(latestData);
-        requestAnimationFrame(()=>handleMove(hasMove,latestData));
-        //latestData = null;
+      // 🔹 HB 開始（1秒間隔）
+      if (!hbTimer) {
+        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),1000);
       }
     }
   } else if (json.error) {
@@ -166,25 +166,21 @@ async function doPost(action,body) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    if (!currentToken) {
-      latestData=data; // join前なら保持
-    } else {
-      const hasMove=renderBoard(data);
-      requestAnimationFrame(()=>handleMove(hasMove,data));
-    }
+    lastData=data;
+    renderBoard(data);
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
+    lastData=data;
     const hasMove=renderBoard(data);
     requestAnimationFrame(()=>handleMove(hasMove,data));
   });
   sse.addEventListener("leave",e=>{
     const data=JSON.parse(e.data);
+    lastData=data;
     renderBoard(data);
-
-    // 自分がまだ残っていて相手が離席した場合だけ通知
-    if (seat !== "observer" && seat && data[seat] === true) {
-      showModal(t("opponent_left"));
+    if (seat && data[seat]===true) {
+      showModal(t("leave"));
     }
   });
 
