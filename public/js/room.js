@@ -176,4 +176,5 @@ alert(3);
 
   // 自動 join
   doPost("join",{seat:seat});
+alert(4);
 //};
