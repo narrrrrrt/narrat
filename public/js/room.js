@@ -1,4 +1,3 @@
-// ===== グローバル =====
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
@@ -13,7 +12,7 @@ async function loadI18n() {
 
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
-  if (!i18n["game_over"][lang]) lang = "en";
+  if (!i18n[lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
@@ -96,10 +95,13 @@ function endGame(flatBoard) {
 // ===== move 処理 =====
 function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
-  const anyMove = flatBoard.includes("*"); // 盤面全体に合法手があるか？
+
+  // 黒/白それぞれに合法手があるかを判定
+  const blackHas = data.board.some(row => row.includes("*")) && data.status === "black";
+  const whiteHas = data.board.some(row => row.includes("*")) && data.status === "white";
 
   if (!hasMove) {
-    if (!anyMove) {
+    if (!blackHas && !whiteHas) {
       // 双方とも合法手なし → 終了
       endGame(flatBoard);
     } else if (seat === data.status) {
