@@ -3,7 +3,7 @@ let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
-alert(1);
+
 // ===== i18n 読み込み =====
 async function loadI18n() {
   const res = await fetch("/i18n/i18n.json");
@@ -13,8 +13,9 @@ async function loadI18n() {
   lang = params.get("lang") || navigator.language.slice(0,2);
   if (!i18n[lang]) lang = "en";
 }
-function t(key, vars={}) {
-  let text = i18n[lang][key] || key;
+
+function t(key, vars = {}) {
+  let text = (i18n[key] && i18n[key][lang]) || key;
   for (const [k,v] of Object.entries(vars)) {
     text = text.replace(`{{${k}}}`, v);
   }
@@ -26,6 +27,7 @@ function showModal(msg, callback) {
   document.getElementById("modalText").innerText = msg;
   const modal = document.getElementById("modal");
   modal.classList.remove("hidden");
+  document.getElementById("modalOk").innerText = t("ok");
   document.getElementById("modalOk").onclick = () => {
     modal.classList.add("hidden");
     if (callback) callback();
@@ -35,10 +37,10 @@ function showModal(msg, callback) {
 // ===== ボード描画 =====
 function renderBoard(data) {
   document.getElementById("status").innerText = {
-    black: t("status_black"),
-    white: t("status_white"),
-    waiting: t("status_waiting"),
-    leave: t("status_leave")
+    black: t("turn_black"),
+    white: t("turn_white"),
+    waiting: t("waiting"),
+    leave: t("leave")
   }[data.status] || "";
 
   const showMoves = (seat === data.status);
@@ -82,7 +84,7 @@ function renderBoard(data) {
 function endGame(flatBoard) {
   const blackCount = (flatBoard.match(/B/g)||[]).length;
   const whiteCount = (flatBoard.match(/W/g)||[]).length;
-  let msg = t("game_end",{b:blackCount,w:whiteCount});
+  let msg = t("game_over") + `\n${t("you_black")}: ${blackCount} vs ${t("you_white")}: ${whiteCount}`;
   if (blackCount > whiteCount) msg += "\n" + t("black_win");
   else if (whiteCount > blackCount) msg += "\n" + t("white_win");
   else msg += "\n" + t("draw");
@@ -128,11 +130,9 @@ async function doPost(action,body) {
 const params = new URLSearchParams(location.search);
 const gameId = params.get("id") || "1";
 
-//window.onload = async () => {
-alert(2);
-
-  //await loadI18n();
-alert(3);
+// ==== 即時実行で初期化 ====
+(async () => {
+  await loadI18n();
 
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
@@ -169,12 +169,11 @@ alert(3);
   sse.addEventListener("leave",e=>{
     const data=JSON.parse(e.data);
     renderBoard(data);
-    showModal(t("status_leave"),async()=>{
+    showModal(t("leave"),async()=>{
       if (currentToken) await doPost("leave",{token:currentToken});
     });
   });
 
   // 自動 join
   doPost("join",{seat:seat});
-alert(4);
-//};
+})();

@@ -1,39 +1,122 @@
 {
-  "en": {
-    "title": "AI-Friendly Reversi #{{room}}",
-    "lobby": "Lobby",
-    "you_black": "You are black.",
-    "you_white": "You are white.",
-    "status_black": "Black's turn.",
-    "status_white": "White's turn.",
-    "status_waiting": "Waiting for opponent...",
-    "status_leave": "Opponent has left.",
-    "hb_start": "Start heartbeat",
-    "hb_stop": "Stop heartbeat",
-    "need_join": "Please join first.",
-    "no_moves": "No moves available.",
-    "game_end": "Game over\nBlack: {{b}} vs White: {{w}}",
-    "black_win": "Black wins!",
-    "white_win": "White wins!",
-    "draw": "Draw!"
+  "game_over": {
+    "en": "Game Over",
+    "es": "Fin del juego",
+    "de": "Spiel beendet",
+    "it": "Partita finita",
+    "fr": "Fin de la partie",
+    "ja": "ゲーム終了"
   },
-  "ja": {
-    "title": "AI-Friendly Reversi #{{room}}",
-    "lobby": "ロビーへ",
-    "you_black": "あなたは黒です。",
-    "you_white": "あなたは白です。",
-    "status_black": "黒の番です。",
-    "status_white": "白の番です。",
-    "status_waiting": "対戦相手の着席待ちです。",
-    "status_leave": "対戦相手が離席しました。",
-    "hb_start": "ハートビート開始",
-    "hb_stop": "ハートビート停止",
-    "need_join": "先に参加してください。",
-    "no_moves": "打つ手がありません。",
-    "game_end": "ゲーム終了\n黒: {{b}} 対 白: {{w}}",
-    "black_win": "黒の勝ち！",
-    "white_win": "白の勝ち！",
-    "draw": "引き分け！"
+  "black_win": {
+    "en": "Black wins!",
+    "es": "¡Negras ganan!",
+    "de": "Schwarz gewinnt!",
+    "it": "Nero vince!",
+    "fr": "Les noirs gagnent !",
+    "ja": "ブラック勝ち！"
+  },
+  "white_win": {
+    "en": "White wins!",
+    "es": "¡Blancas ganan!",
+    "de": "Weiß gewinnt!",
+    "it": "Bianco vince!",
+    "fr": "Les blancs gagnent !",
+    "ja": "ホワイト勝ち！"
+  },
+  "draw": {
+    "en": "Draw!",
+    "es": "¡Empate!",
+    "de": "Unentschieden!",
+    "it": "Pareggio!",
+    "fr": "Match nul !",
+    "ja": "引き分け！"
+  },
+  "no_moves": {
+    "en": "No valid moves available.",
+    "es": "No hay movimientos válidos disponibles.",
+    "de": "Keine gültigen Züge verfügbar.",
+    "it": "Nessuna mossa valida disponibile.",
+    "fr": "Aucun coup valide disponible.",
+    "ja": "打つ手がありません"
+  },
+  "opponent_left": {
+    "en": "Your opponent has left.",
+    "es": "Tu oponente se ha ido.",
+    "de": "Dein Gegner hat das Spiel verlassen.",
+    "it": "Il tuo avversario ha lasciato la partita.",
+    "fr": "Votre adversaire a quitté la partie.",
+    "ja": "対戦相手が退出しました。"
+  },
+  "ok": {
+    "en": "OK",
+    "es": "Aceptar",
+    "de": "OK",
+    "it": "OK",
+    "fr": "OK",
+    "ja": "OK"
+  },
+  "title": {
+    "en": "AI-Friendly Reversi #{{room}}",
+    "es": "Reversi amigable con IA #{{room}}",
+    "de": "KI-freundliches Reversi #{{room}}",
+    "it": "Reversi amichevole con IA #{{room}}",
+    "fr": "Reversi convivial avec IA #{{room}}",
+    "ja": "AIフレンドリーリバーシ #{{room}}"
+  },
+  "lobby": {
+    "en": "Back to Lobby",
+    "es": "Volver al lobby",
+    "de": "Zurück zur Lobby",
+    "it": "Torna alla lobby",
+    "fr": "Retour au lobby",
+    "ja": "ロビーへ"
+  },
+  "you_black": {
+    "en": "You are black.",
+    "es": "Eres negro.",
+    "de": "Du bist Schwarz.",
+    "it": "Sei nero.",
+    "fr": "Vous êtes noir.",
+    "ja": "あなたは黒です。"
+  },
+  "you_white": {
+    "en": "You are white.",
+    "es": "Eres blanco.",
+    "de": "Du bist Weiß.",
+    "it": "Sei bianco.",
+    "fr": "Vous êtes blanc.",
+    "ja": "あなたは白です。"
+  },
+  "turn_black": {
+    "en": "Black's turn.",
+    "es": "Turno de negras.",
+    "de": "Schwarz ist am Zug.",
+    "it": "Tocca al nero.",
+    "fr": "Au tour des noirs.",
+    "ja": "黒の番です。"
+  },
+  "turn_white": {
+    "en": "White's turn.",
+    "es": "Turno de blancas.",
+    "de": "Weiß ist am Zug.",
+    "it": "Tocca al bianco.",
+    "fr": "Au tour des blancs.",
+    "ja": "白の番です。"
+  },
+  "waiting": {
+    "en": "Waiting for opponent to join.",
+    "es": "Esperando a que se una el oponente.",
+    "de": "Warten auf den Gegner.",
+    "it": "In attesa dell'avversario.",
+    "fr": "En attente de l'adversaire.",
+    "ja": "対戦相手の着席待ちです。"
+  },
+  "leave": {
+    "en": "Opponent has left the game.",
+    "es": "El oponente ha abandonado la partida.",
+    "de": "Der Gegner hat das Spiel verlassen.",
+    "it": "L'avversario ha lasciato la partita.",
+    "fr": "L'adversaire a quitté la partie.",
+    "ja": "対戦相手が離席しました。"
   }
-  // es, de, fr, it も同様に追加
 }
