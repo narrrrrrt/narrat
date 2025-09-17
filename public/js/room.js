@@ -125,6 +125,8 @@ async function doPost(action,body) {
     if (action==="join") {
       currentToken = json.token;
       seat = json.role;
+      currentStep = json.step;
+
       document.getElementById("seatInfo").innerText =
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
@@ -134,16 +136,23 @@ async function doPost(action,body) {
       if (!hbTimer) {
         hbTimer = setInterval(()=>doPost("hb",{token:currentToken}),1000);
       }
-
-      // joinレスポンスが勝ってたら描画
-      if (lastData && lastData.step > currentStep) {
-        currentStep = lastData.step;
-        renderBoard(lastData);
-      }
     }
   } else if (json.error) {
     showModal(json.error);
   }
+}
+
+function scheduleRetry(data) {
+  setTimeout(function check() {
+    if (data.step > currentStep) {
+      renderBoard(data);
+      currentStep = data.step;
+      // 処理が終わったので何もしない（タイマーはここで終わる）
+    } else {
+      // まだ追いついてない → 同じ data を引数で再試行
+      scheduleRetry(data);
+    }
+  }, 200);
 }
 
 // ==== 即時実行で初期化 ====
@@ -174,17 +183,17 @@ async function doPost(action,body) {
       currentStep = data.step;
       renderBoard(data);
     } else {
-      lastData = data;
+      scheduleRetry(data);
     }
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    if (data.step > currentStep) {
+    if (data.step >= currentStep) {
       currentStep = data.step;
       const hasMove=renderBoard(data);
       requestAnimationFrame(()=>handleMove(hasMove,data));
     } else {
-      lastData = data;
+      scheduleRetry(data);
     }
   });
   sse.addEventListener("leave",e=>{
@@ -193,7 +202,7 @@ async function doPost(action,body) {
       currentStep = data.step;
       renderBoard(data);
     } else {
-      lastData = data;
+      scheduleRetry(data);
     }
     if (seat && data[seat]===true) {
       showModal(t("leave"),async()=>{
