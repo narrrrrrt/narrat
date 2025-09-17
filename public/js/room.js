@@ -58,14 +58,22 @@ function renderBoard(data) {
     const tr = document.createElement("tr");
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
+
       if (cell === "B") {
-        td.className = "stone black";
+        const stone = document.createElement("div");
+        stone.className = "stone black";
+        td.appendChild(stone);
       } else if (cell === "W") {
-        td.className = "stone white";
+        const stone = document.createElement("div");
+        stone.className = "stone white";
+        td.appendChild(stone);
       } else if (cell === "*" && showMoves) {
-        td.className = "stone move";
+        const move = document.createElement("div");
+        move.className = "move";
+        td.appendChild(move);
         hasMove = true;
       }
+
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
         doPost("move",{x,y,token:currentToken});
