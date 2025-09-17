@@ -49,7 +49,7 @@ table td {
 }
 
 /* モーダル本体 */
-#modalContent {
+.modal-content {
   background: white;
   padding: 20px;
   border-radius: 8px;
