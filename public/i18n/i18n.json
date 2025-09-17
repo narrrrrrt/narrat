@@ -1,0 +1,39 @@
+{
+  "en": {
+    "title": "AI-Friendly Reversi #{{room}}",
+    "lobby": "Lobby",
+    "you_black": "You are black.",
+    "you_white": "You are white.",
+    "status_black": "Black's turn.",
+    "status_white": "White's turn.",
+    "status_waiting": "Waiting for opponent...",
+    "status_leave": "Opponent has left.",
+    "hb_start": "Start heartbeat",
+    "hb_stop": "Stop heartbeat",
+    "need_join": "Please join first.",
+    "no_moves": "No moves available.",
+    "game_end": "Game over\nBlack: {{b}} vs White: {{w}}",
+    "black_win": "Black wins!",
+    "white_win": "White wins!",
+    "draw": "Draw!"
+  },
+  "ja": {
+    "title": "AI-Friendly Reversi #{{room}}",
+    "lobby": "ロビーへ",
+    "you_black": "あなたは黒です。",
+    "you_white": "あなたは白です。",
+    "status_black": "黒の番です。",
+    "status_white": "白の番です。",
+    "status_waiting": "対戦相手の着席待ちです。",
+    "status_leave": "対戦相手が離席しました。",
+    "hb_start": "ハートビート開始",
+    "hb_stop": "ハートビート停止",
+    "need_join": "先に参加してください。",
+    "no_moves": "打つ手がありません。",
+    "game_end": "ゲーム終了\n黒: {{b}} 対 白: {{w}}",
+    "black_win": "黒の勝ち！",
+    "white_win": "白の勝ち！",
+    "draw": "引き分け！"
+  }
+  // es, de, fr, it も同様に追加
+}

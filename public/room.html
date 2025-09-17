@@ -2,250 +2,39 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SSE リバーシボード</title>
-  <style>
-    table { border-collapse: collapse; margin-top: 10px; }
-    td {
-      border: 1px solid #000;
-      width: 30px; height: 30px;
-      text-align: center;
-    }
-    a {
-      display: block;
-      width: 100%; height: 100%;
-      text-decoration: none;
-      color: black;
-    }
-    pre {
-      background: #f0f0f0;
-      padding: 5px;
-      border: 1px solid #ccc;
-      white-space: pre-wrap;
-    }
-  </style>
+  <title>AI-Friendly Reversi</title>
+  <link rel="stylesheet" href="css/room.css">
 </head>
 <body>
-  <h1>SSE リバーシボード</h1>
+  <!-- ロビーへボタン -->
+  <button id="lobbyBtn"></button>
 
-  <!-- トークン表示 -->
-  <p id="token">トークン: （まだなし）</p>
+  <!-- タイトル -->
+  <h1 id="title"></h1>
 
-  <!-- 各種情報 -->
-  <div id="info">
-    <p id="status">ステータス: </p>
-    <p id="step">ステップ: </p>
-    <p id="black">ブラック: </p>
-    <p id="white">ホワイト: </p>
-    <p id="qid">ID: </p>
-    <p id="qseat">Seat: </p>
+  <!-- プレイヤー表示 -->
+  <p id="seatInfo"></p>
+
+  <!-- ステータス表示 -->
+  <p id="status"></p>
+
+  <!-- ハートビート制御 -->
+  <div id="heartbeatControls">
+    <button id="hbStart"></button>
+    <button id="hbStop"></button>
   </div>
-
-  <!-- アクション表示 -->
-  <p id="action">アクション: （まだなし）</p>
-
-  <!-- ボタン -->
-  <div id="actions">
-    <button id="joinBtn">Join</button>
-    <button id="leaveBtn">Leave</button>
-    <button id="resetBtn">Reset</button>
-  </div>
-
-  <!-- レスポンス表示 -->
-  <pre id="response">レスポンス: （まだなし）</pre>
 
   <!-- ボード -->
   <div id="board"></div>
 
-  <script>
-    // ===== クエリパラメータ取得 =====
-    const params = new URLSearchParams(location.search);
-    const gameId = params.get("id") || "1";
-    let seat     = params.get("seat") || "";   // seat は join 後に role で上書きする
-    let currentToken = null;
-    let currentStep  = null;
+  <!-- モーダル -->
+  <div id="modal" class="hidden">
+    <div class="modal-content">
+      <p id="modalText"></p>
+      <button id="modalOk">OK</button>
+    </div>
+  </div>
 
-    document.getElementById("qid").innerText   = "ID: " + gameId;
-    document.getElementById("qseat").innerText = "Seat: " + seat;
-
-    // ===== SSE 接続 =====
-    const sse = new EventSource(`/${gameId}/sse`);
-
-    // === ボード描画（合法手の有無を返す） ===
-    function renderBoard(data) {
-      // ステータス類を表示
-      document.getElementById("status").innerText = "ステータス: " + data.status;
-      document.getElementById("step").innerText   = "ステップ: " + data.step;
-      document.getElementById("black").innerText  = "ブラック: " + data.black;
-      document.getElementById("white").innerText  = "ホワイト: " + data.white;
-
-      // 座席と手番が一致しているかどうか判定
-      const showMoves = (seat === data.status);
-      let hasMove = false;
-
-      // ボードを描画
-      const boardDiv = document.getElementById("board");
-      boardDiv.innerHTML = "";
-      const table = document.createElement("table");
-
-      data.board.forEach((row, y) => {
-        const tr = document.createElement("tr");
-        row.split("").forEach((cell, x) => {
-          if (showMoves && cell === "*") {
-            hasMove = true; // 自分の手番で合法手あり
-          }
-          if (!showMoves && cell === "*") {
-            cell = "-"; // 非手番側には合法手を隠す
-          }
-          const td = document.createElement("td");
-          const a = document.createElement("a");
-          a.href = "#";
-          a.innerText = cell;
-          a.dataset.x = x;
-          a.dataset.y = y;
-          a.onclick = (e) => {
-            e.preventDefault();
-            if (!currentToken) {
-              alert("先にJoinしてください");
-              return;
-            }
-            doPost("move", { x: x, y: y, token: currentToken });
-          };
-          td.appendChild(a);
-          tr.appendChild(td);
-        });
-        table.appendChild(tr);
-      });
-      boardDiv.appendChild(table);
-
-      return hasMove; // 合法手があるかどうか返す
-    }
-
-    // === ゲーム終了処理 ===
-    function endGame(flatBoard) {
-      const blackCount = (flatBoard.match(/B/g) || []).length;
-      const whiteCount = (flatBoard.match(/W/g) || []).length;
-
-      let msg = `ゲーム終了\nブラック: ${blackCount} 対 ホワイト: ${whiteCount}\n`;
-      if (blackCount > whiteCount) {
-        msg += "ブラック勝ち!";
-      } else if (whiteCount > blackCount) {
-        msg += "ホワイト勝ち!";
-      } else {
-        msg += "引き分け!";
-      }
-      alert(msg);
-    }
-
-    // === move 専用処理（終了とパスを分離） ===
-    function handleMove(hasMove, data) {
-      const flatBoard = data.board.join("");
-      const hasEmpty = /[-*]/.test(flatBoard); // 空きマスが残っているか？
-
-      if (!hasMove) {
-        if (!hasEmpty) {
-          // === 空きがない → 終了 ===
-          endGame(flatBoard);
-          return;
-        } else {
-          // ★ 空きはあるが合法手が両者ともない場合も終了
-          const blackHas = flatBoard.includes("*") && data.status === "black";
-          const whiteHas = flatBoard.includes("*") && data.status === "white";
-          if (!blackHas && !whiteHas) {
-            endGame(flatBoard);
-            return;
-          }
-
-          if (seat === data.status) {
-            // === パス処理（自分の番だけ実行） ===
-            alert("打つ手がありません");
-            doPost("move", { x: 3, y: 3, token: currentToken });
-          }
-        }
-      }
-    }
-
-    // ==== SSE イベント: join ====
-    sse.addEventListener("join", e => {
-      const data = JSON.parse(e.data);
-      document.getElementById("action").innerText = "アクション: join";
-      renderBoard(data);
-    });
-
-    // ==== SSE イベント: move ====
-    sse.addEventListener("move", e => {
-      const data = JSON.parse(e.data);
-      document.getElementById("action").innerText = "アクション: move";
-      const hasMove = renderBoard(data);
-      //handleMove(hasMove, data);
-requestAnimationFrame(() => {
-  handleMove(hasMove, data); // この中の alert は描画反映後に出る
-});
-    });
-
-    // ==== SSE イベント: leave ====
-    sse.addEventListener("leave", async e => {
-      const data = JSON.parse(e.data);
-      document.getElementById("action").innerText = "アクション: leave";
-      renderBoard(data);
-
-      // 自分の座席がまだ true なら、相手が抜けた
-      if (seat && data[seat] === true) {
-        alert("対戦相手が退出しました。");
-        if (currentToken) {
-          await doPost("leave", { token: currentToken });
-          await doPost("join", { seat: seat });
-        }
-      }
-    });
-
-    // ==== SSE イベント: reset ====
-    sse.addEventListener("reset", e => {
-      const data = JSON.parse(e.data);
-      document.getElementById("action").innerText = "アクション: reset";
-      renderBoard(data);
-    });
-
-    // ===== ボタン処理 =====
-    async function doPost(action, bodyObj) {
-      const res = await fetch(`/${gameId}/${action}`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(bodyObj)
-      });
-      const json = await res.json();
-
-      // 整形して表示
-      document.getElementById("response").innerText =
-        "レスポンス:\n" + JSON.stringify(json, null, 2);
-
-      // === レスポンス処理 ===
-      if (json.ok) {
-        if (typeof json.step === "number") {
-          currentStep = json.step;
-          document.getElementById("step").innerText = "ステップ: " + currentStep;
-        }
-        if (action === "join") {
-          currentToken = json.token;
-          seat = json.role;
-          document.getElementById("token").innerText = "トークン: " + currentToken;
-          document.getElementById("qseat").innerText = "Seat: " + seat;
-        }
-      } else {
-        if (json.error) {
-          alert(json.error);
-        }
-      }
-    }
-
-    document.getElementById("joinBtn").onclick = () => doPost("join", { seat: seat });
-    document.getElementById("leaveBtn").onclick = () => {
-      if (!currentToken) {
-        alert("先にJoinしてください");
-        return;
-      }
-      doPost("leave", { token: currentToken });
-    };
-    document.getElementById("resetBtn").onclick = () => doPost("reset", {});
-  </script>
+  <script src="js/room.js"></script>
 </body>
 </html>

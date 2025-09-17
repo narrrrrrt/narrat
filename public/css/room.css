@@ -1,0 +1,36 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+#board table {
+  border-collapse: collapse;
+  margin: 20px auto;
+  background: green;
+}
+
+#board td {
+  border: 1px solid #000;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 24px;
+}
+
+.black { color: black; }
+.white { color: black; } /* 白石は○で表現 */
+.move  { color: orange; font-size: 16px; }
+
+.hidden { display: none; }
+
+.modal-content {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border: 2px solid #444;
+  box-shadow: 0 0 10px #000;
+}
