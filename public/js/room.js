@@ -3,7 +3,7 @@ let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
-aleart(1);
+alert(1);
 // ===== i18n 読み込み =====
 async function loadI18n() {
   const res = await fetch("i18n/i18n.json");
@@ -129,7 +129,7 @@ const params = new URLSearchParams(location.search);
 const gameId = params.get("id") || "1";
 
 window.onload = async () => {
-aleart(2);
+alert(2);
   await loadI18n();
 
   document.getElementById("title").innerText = t("title",{room:gameId});
