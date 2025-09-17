@@ -31,23 +31,28 @@ button {
   vertical-align: middle;
   font-size: 28px;
   font-weight: bold;
-  color: black;
 }
 
 #board td.black {
-  color: black;
+  background-color: #000;   /* 黒石 */
+  border-radius: 50%;
 }
 
 #board td.white {
-  color: white;
-  text-shadow: 0 0 2px #000; /* 白石を見やすくする */
+  background-color: #fff;   /* 白石 */
+  border-radius: 50%;
+  border: 1px solid #000;   /* 輪郭を黒で */
 }
 
 #board td.move {
-  color: orange;
-  font-size: 18px; /* 石より小さくする */
+  background-color: orange; /* 合法手はオレンジ */
+  border-radius: 50%;
+  width: 60%;
+  height: 60%;
+  margin: auto;
 }
 
+/* ===== モーダル ===== */
 #modal.hidden {
   display: none;
 }
@@ -56,7 +61,7 @@ button {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* 半透明の黒背景 */
+  background: rgba(0, 0, 0, 0.6); /* 半透明スモーク */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,7 +69,7 @@ button {
 }
 
 #modalContent {
-  background: white;
+  background: #fff;          /* モーダル本体は白背景 */
   padding: 20px;
   border-radius: 8px;
   max-width: 90%;

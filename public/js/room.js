@@ -175,12 +175,19 @@ async function doPost(action,body) {
     const hasMove=renderBoard(data);
     requestAnimationFrame(()=>handleMove(hasMove,data));
   });
-  sse.addEventListener("leave",e=>{
-    const data=JSON.parse(e.data);
-    lastData=data;
+  sse.addEventListener("leave", async e => {
+    const data = JSON.parse(e.data);
+    lastData = data;
     renderBoard(data);
-    if (seat && data[seat]===true) {
-      showModal(t("leave"));
+
+    // 自分が残っていて相手がいなくなった場合だけ通知
+    if (seat && data[seat] === true) {
+      showModal(t("leave"), async () => {
+        if (currentToken) {
+          await doPost("leave", { token: currentToken });
+          await doPost("join", { seat: seat }); // 🔹 入り直し
+        }
+      });
     }
   });
 
