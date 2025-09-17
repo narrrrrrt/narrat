@@ -130,6 +130,7 @@ const gameId = params.get("id") || "1";
 
 //window.onload = async () => {
 alert(2);
+/*
   await loadI18n();
 
   document.getElementById("title").innerText = t("title",{room:gameId});
@@ -175,3 +176,4 @@ alert(2);
   // 自動 join
   doPost("join",{seat:seat});
 //};
+*/
