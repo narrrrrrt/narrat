@@ -1,9 +1,11 @@
+// ===== グローバル変数 =====
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
+let latestData = null; // 最新のSSEデータ保持
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
@@ -11,13 +13,13 @@ async function loadI18n() {
   i18n = await res.json();
 
   const params = new URLSearchParams(location.search);
-  lang = params.get("lang") || navigator.language.slice(0, 2);
-  if (!i18n[lang]) lang = "en";
+  lang = params.get("lang") || navigator.language.slice(0,2);
+  if (!i18n["game_over"][lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
   let text = (i18n[key] && i18n[key][lang]) || key;
-  for (const [k, v] of Object.entries(vars)) {
+  for (const [k,v] of Object.entries(vars)) {
     text = text.replace(`{{${k}}}`, v);
   }
   return text;
@@ -51,9 +53,9 @@ function renderBoard(data) {
   boardDiv.innerHTML = "";
   const table = document.createElement("table");
 
-  data.board.forEach((row, y) => {
+  data.board.forEach((row,y) => {
     const tr = document.createElement("tr");
-    row.split("").forEach((cell, x) => {
+    row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
       if (cell === "B") {
         td.innerText = "●";
@@ -69,11 +71,8 @@ function renderBoard(data) {
         td.innerText = " ";
       }
       td.onclick = () => {
-        if (!currentToken) {
-          showModal(t("need_join"));
-          return;
-        }
-        doPost("move", { x, y, token: currentToken });
+        if (!currentToken) { showModal(t("need_join")); return; }
+        doPost("move",{x,y,token:currentToken});
       };
       tr.appendChild(td);
     });
@@ -86,10 +85,9 @@ function renderBoard(data) {
 
 // ===== ゲーム終了処理 =====
 function endGame(flatBoard) {
-  const blackCount = (flatBoard.match(/B/g) || []).length;
-  const whiteCount = (flatBoard.match(/W/g) || []).length;
-  let msg = t("game_over") +
-    `\n${t("you_black")}: ${blackCount} vs ${t("you_white")}: ${whiteCount}`;
+  const blackCount = (flatBoard.match(/B/g)||[]).length;
+  const whiteCount = (flatBoard.match(/W/g)||[]).length;
+  let msg = t("game_over") + `\n${t("you_black")}: ${blackCount} vs ${t("you_white")}: ${whiteCount}`;
   if (blackCount > whiteCount) msg += "\n" + t("black_win");
   else if (whiteCount > blackCount) msg += "\n" + t("white_win");
   else msg += "\n" + t("draw");
@@ -97,64 +95,50 @@ function endGame(flatBoard) {
 }
 
 // ===== move 処理 =====
-function handleMove(hasMove, data) {
+function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
 
   if (!hasMove) {
-    if (!/[-*]/.test(flatBoard)) {
-      // 空きなし → 終了
+    if (!flatBoard.includes("*") && !flatBoard.includes("-")) {
+      // 空きも合法手もない → 終了
       endGame(flatBoard);
     } else if (seat === data.status) {
-      // 自分の番で合法手なし → パス
-      showModal(t("no_moves"), () => {
-        doPost("move", { x: 3, y: 3, token: currentToken });
+      // パス
+      showModal(t("no_moves"),()=>{
+        doPost("move",{x:3,y:3,token:currentToken});
       });
     }
   }
 }
 
+// ===== 共通描画トリガー =====
+function maybeRender() {
+  if (latestData && seat) {
+    const hasMove = renderBoard(latestData);
+    requestAnimationFrame(() => handleMove(hasMove, latestData));
+  }
+}
+
 // ===== POST =====
-async function doPost(action, body) {
-  const res = await fetch(`/${gameId}/${action}`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+async function doPost(action,body) {
+  const res = await fetch(`/${gameId}/${action}`,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)
   });
   const json = await res.json();
   if (json.ok) {
-    if (action === "join") {
+    if (action==="join") {
       currentToken = json.token;
       seat = json.role;
       document.getElementById("seatInfo").innerText =
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
         t("you_observer");
-
-      // ===== join 成功時にハートビート開始 =====
-      if (!hbTimer) {
-        hbTimer = setInterval(() => {
-          doPost("hb", { token: currentToken });
-        }, 10000);
-      }
-
-      // ===== join 成功時に SSE 開始 =====
-      const sse = new EventSource(`/${gameId}/sse`);
-      sse.addEventListener("join", e => {
-        const data = JSON.parse(e.data);
-        renderBoard(data);
-      });
-      sse.addEventListener("move", e => {
-        const data = JSON.parse(e.data);
-        const hasMove = renderBoard(data);
-        requestAnimationFrame(() => handleMove(hasMove, data));
-      });
-      sse.addEventListener("leave", e => {
-        const data = JSON.parse(e.data);
-        renderBoard(data);
-        showModal(t("leave"), async () => {
-          if (currentToken) await doPost("leave", { token: currentToken });
-        });
-      });
-    }
+      // join 成功したので描画試行
+      maybeRender();
+      // ハートビート開始
+      hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
+    } 
   } else if (json.error) {
     showModal(json.error);
   }
@@ -164,22 +148,40 @@ async function doPost(action, body) {
 (async () => {
   await loadI18n();
 
-  document.getElementById("title").innerText = t("title", { room: gameId });
+  document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
-  document.getElementById("hbStop").innerText = t("hb_stop");
+  document.getElementById("hbStop").innerText  = t("hb_stop");
 
   // ロビーへ
-  document.getElementById("lobbyBtn").onclick = async () => {
-    if (currentToken) await doPost("leave", { token: currentToken });
-    location.href = "/";
+  document.getElementById("lobbyBtn").onclick = async ()=>{
+    if (currentToken) await doPost("leave",{token:currentToken});
+    location.href="/";
   };
 
   // ハートビート停止
-  document.getElementById("hbStop").onclick = () => {
+  document.getElementById("hbStop").onclick = ()=>{
     clearInterval(hbTimer);
-    hbTimer = null;
+    hbTimer=null;
   };
 
+  // SSE
+  const sse = new EventSource(`/${gameId}/sse`);
+  sse.addEventListener("join",e=>{
+    latestData = JSON.parse(e.data);
+    maybeRender();
+  });
+  sse.addEventListener("move",e=>{
+    latestData = JSON.parse(e.data);
+    maybeRender();
+  });
+  sse.addEventListener("leave",e=>{
+    latestData = JSON.parse(e.data);
+    maybeRender();
+    showModal(t("leave"),async()=>{
+      if (currentToken) await doPost("leave",{token:currentToken});
+    });
+  });
+
   // 自動 join
-  doPost("join", { seat: seat });
+  doPost("join",{seat:seat});
 })();
