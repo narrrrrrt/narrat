@@ -119,8 +119,9 @@ async function doPost(action,body) {
       currentToken = json.token;
       seat = json.role;
       document.getElementById("seatInfo").innerText =
-        (seat==="black"?t("you_black"):t("you_white"));
-    }
+        seat === "black" ? t("you_black") :
+        seat === "white" ? t("you_white") :
+        t("you_observer");
   } else if (json.error) {
     showModal(json.error);
   }
@@ -129,6 +130,7 @@ async function doPost(action,body) {
 // ===== 初期化 =====
 const params = new URLSearchParams(location.search);
 const gameId = params.get("id") || "1";
+seat = params.get("seat") || "observer"; 
 
 // ==== 即時実行で初期化 ====
 (async () => {
