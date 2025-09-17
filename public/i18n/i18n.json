@@ -87,6 +87,14 @@
     "fr": "Vous êtes blanc.",
     "ja": "あなたは白です。"
   },
+  "you_observer": {
+    "en": "You are an observer.",
+    "es": "Eres un observador.",
+    "de": "Du bist Beobachter.",
+    "it": "Sei osservatore.",
+    "fr": "Vous êtes spectateur.",
+    "ja": "あなたは観戦者です。"
+  },
   "turn_black": {
     "en": "Black's turn.",
     "es": "Turno de negras.",
