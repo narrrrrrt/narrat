@@ -136,7 +136,7 @@ async function doPost(action,body) {
       // もし先に SSE が来て lastData に残ってたら描画
       if (lastData) {
         renderBoard(lastData);
-        lastData=null;
+        //lastData=null;
       }
     }
   } else if (json.error) {
