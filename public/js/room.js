@@ -177,10 +177,13 @@ async function doPost(action,body) {
     requestAnimationFrame(()=>handleMove(hasMove,data));
   });
   sse.addEventListener("leave",e=>{
-    const data=JSON.parse(e.data);
+    const data = JSON.parse(e.data);
     renderBoard(data);
-    if (seat && data[seat]===true) {
-      showModal(t("leave"));
+    if (seat && data[seat] === true) {
+      showModal(t("leave"), async () => {
+        if (currentToken) await doPost("leave",{token:currentToken});
+        await doPost("join",{seat:seat});
+      });
     }
   });
 
