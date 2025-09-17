@@ -132,7 +132,8 @@ const gameId = params.get("id") || "1";
 alert(2);
 
   await loadI18n();
-
+alert(3);
+/*
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
   document.getElementById("hbStart").innerText = t("hb_start");
@@ -153,8 +154,7 @@ alert(2);
     clearInterval(hbTimer);
     hbTimer=null;
   };
-alert(3);
-/*
+
   // SSE
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
