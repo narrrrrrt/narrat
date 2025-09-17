@@ -1,11 +1,10 @@
-// ===== グローバル変数 =====
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
-let latestData = null; // 最新のSSEデータ保持
+let latestData = null; // SSE先行対策用に保持
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
@@ -14,7 +13,7 @@ async function loadI18n() {
 
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
-  if (!i18n["game_over"][lang]) lang = "en";
+  if (!i18n[lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
@@ -99,23 +98,14 @@ function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
 
   if (!hasMove) {
-    if (!flatBoard.includes("*") && !flatBoard.includes("-")) {
-      // 空きも合法手もない → 終了
+    const anyLegal = data.board.some(row => row.includes("*"));
+    if (!anyLegal) {
       endGame(flatBoard);
     } else if (seat === data.status) {
-      // パス
       showModal(t("no_moves"),()=>{
         doPost("move",{x:3,y:3,token:currentToken});
       });
     }
-  }
-}
-
-// ===== 共通描画トリガー =====
-function maybeRender() {
-  if (latestData && seat) {
-    const hasMove = renderBoard(latestData);
-    requestAnimationFrame(() => handleMove(hasMove, latestData));
   }
 }
 
@@ -134,11 +124,19 @@ async function doPost(action,body) {
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
         t("you_observer");
-      // join 成功したので描画試行
-      maybeRender();
-      // ハートビート開始
-      hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
-    } 
+
+      // ハートビート開始（初回だけ）
+      if (!hbTimer) {
+        hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
+      }
+
+      // join 成功後、もしSSEが既にデータ受信していれば描画
+      if (latestData) {
+        const hasMove = renderBoard(latestData);
+        requestAnimationFrame(()=>handleMove(hasMove,latestData));
+        //latestData = null;
+      }
+    }
   } else if (json.error) {
     showModal(json.error);
   }
@@ -167,19 +165,27 @@ async function doPost(action,body) {
   // SSE
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
-    latestData = JSON.parse(e.data);
-    maybeRender();
+    const data=JSON.parse(e.data);
+    if (!currentToken) {
+      latestData=data; // join前なら保持
+    } else {
+      const hasMove=renderBoard(data);
+      requestAnimationFrame(()=>handleMove(hasMove,data));
+    }
   });
   sse.addEventListener("move",e=>{
-    latestData = JSON.parse(e.data);
-    maybeRender();
+    const data=JSON.parse(e.data);
+    const hasMove=renderBoard(data);
+    requestAnimationFrame(()=>handleMove(hasMove,data));
   });
   sse.addEventListener("leave",e=>{
-    latestData = JSON.parse(e.data);
-    maybeRender();
-    showModal(t("leave"),async()=>{
-      if (currentToken) await doPost("leave",{token:currentToken});
-    });
+    const data=JSON.parse(e.data);
+    renderBoard(data);
+
+    // 自分がまだ残っていて相手が離席した場合だけ通知
+    if (seat !== "observer" && seat && data[seat] === true) {
+      showModal(t("opponent_left"));
+    }
   });
 
   // 自動 join
