@@ -1,44 +1,65 @@
-/* ボード全体 */
-table {
-  border-collapse: collapse;
-  margin: 20px auto;
+/* ===== モーダル ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
 }
-td {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #000;
-  background-color: green; /* 常に緑 */
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  z-index: 1001;
+}
+
+/* ===== 盤面 ===== */
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 50px);
+  grid-template-rows: repeat(8, 50px);
+  gap: 1px;
+  background: green;
+  margin: 20px auto;
+  width: max-content;
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  background: green;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 }
 
-/* 共通で円を中央に配置 */
-td::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
+.stone {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
 }
 
-/* 黒石 */
-td.black::before {
-  width: 70%;
-  height: 70%;
-  background-color: black;
+.stone.black {
+  background: black;
 }
 
-/* 白石 */
-td.white::before {
-  width: 70%;
-  height: 70%;
-  background-color: white;
-  border: 1px solid black; /* 白が背景と混ざらないよう縁取り */
+.stone.white {
+  background: white;
+  border: 1px solid #000; /* 見やすくするため枠線 */
 }
 
-/* 合法手 (オレンジ小ドット) */
-td.move::before {
-  width: 30%;
-  height: 30%;
-  background-color: orange;
+/* 合法手は小さめのオレンジ丸 */
+.hint {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: orange;
+  position: absolute;
 }
