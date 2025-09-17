@@ -130,7 +130,7 @@ const gameId = params.get("id") || "1";
 
 //window.onload = async () => {
 alert(2);
-/*
+
   await loadI18n();
 
   document.getElementById("title").innerText = t("title",{room:gameId});
@@ -153,7 +153,8 @@ alert(2);
     clearInterval(hbTimer);
     hbTimer=null;
   };
-
+alert(3);
+/*
   // SSE
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
