@@ -123,7 +123,8 @@ async function doPost(action,body) {
       document.getElementById("seatInfo").innerText =
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
-        t("you_observer");
+        t("you_observer") + " (token=" + currentToken + ")";
+        //t("you_observer");
     } 
   } else if (json.error) {
     showModal(json.error);
