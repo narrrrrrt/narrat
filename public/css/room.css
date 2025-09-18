@@ -17,7 +17,7 @@
 /* 黒石（黒●） */
 #board .black {
   color: black;
-  font-size: 46px;   /* セルより大きめ */
+  font-size: 48px;   /* セルよりさらに大きめ */
   line-height: 40px;
 }
 
@@ -25,14 +25,14 @@
 #board .white {
   color: white;
   -webkit-text-stroke: 2px black; /* 黒縁 */
-  font-size: 46px;   /* セルより大きめ */
+  font-size: 48px;   /* セルよりさらに大きめ */
   line-height: 40px;
 }
 
 /* 合法手 (オレンジの小さい●) */
 #board .move {
   color: orange;
-  font-size: 18px;   /* 小さめ（約40%） */
+  font-size: 22px;   /* 少し大きめ（以前18px→22px） */
   line-height: 40px;
 }
 
