@@ -17,7 +17,7 @@
 /* 黒石（黒●） */
 #board .black {
   color: black;
-  font-size: 40px;   /* セルいっぱい */
+  font-size: 46px;   /* セルより大きめ */
   line-height: 40px;
 }
 
@@ -25,7 +25,7 @@
 #board .white {
   color: white;
   -webkit-text-stroke: 2px black; /* 黒縁 */
-  font-size: 40px;   /* セルいっぱい */
+  font-size: 46px;   /* セルより大きめ */
   line-height: 40px;
 }
 
