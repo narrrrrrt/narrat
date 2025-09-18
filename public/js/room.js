@@ -109,6 +109,7 @@ function handleMove(hasMove,data) {
       });
     }
   }
+}
 */
 function handleMove(hasMove, data) {
   const flatBoard = data.board.join("");
@@ -130,8 +131,6 @@ function handleMove(hasMove, data) {
       });
     }
   }
-}
-
 }
 
 // ===== POST =====
