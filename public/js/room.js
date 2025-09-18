@@ -251,8 +251,8 @@ function log(msg) {
           await doPost("leave",{token:currentToken});
           await doPost("join",{seat:seat});
         }
-      } 
-    });
+      });
+    } 
   });
 
   // 自動 join
