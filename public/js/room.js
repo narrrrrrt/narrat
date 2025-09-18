@@ -180,8 +180,6 @@ function log(msg) {
 
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
-  document.getElementById("hbStart").innerText = t("hb_start");
-  document.getElementById("hbStop").innerText  = t("hb_stop");
 
   // ロビーへ
   document.getElementById("lobbyBtn").onclick = async ()=>{
