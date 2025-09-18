@@ -111,28 +111,29 @@ function handleMove(hasMove,data) {
   }
 }
 */
+// ===== move 処理 =====
 function handleMove(hasMove, data) {
   const flatBoard = data.board.join("");
-  const hasStar = /\*/.test(flatBoard);
-  const hasEmpty = /-/.test(flatBoard);
 
-  if (!hasStar) {
-    // どちらのプレイヤーにも合法手なし → 終了
+  // 1. 両者とも合法手がない → 終了
+  if (!flatBoard.includes("*")) {
     endGame(flatBoard);
     return;
   }
 
-  if (!hasMove) {
-    if (!hasEmpty) {
-      endGame(flatBoard);
-    } else if (seat === data.status) {
-      showModal(t("no_moves"), () => {
-        doPost("move", { x: 3, y: 3, token: currentToken }); // ダミーパス
-      });
-    }
+  // 2. 盤面が完全に埋まっている（- も * も無い） → 終了
+  if (!/[-*]/.test(flatBoard)) {
+    endGame(flatBoard);
+    return;
+  }
+
+  // 3. 自分のターンで合法手がない → パス
+  if (!hasMove && seat === data.status) {
+    showModal(t("no_moves"), () => {
+      doPost("move", { x: 3, y: 3, token: currentToken });
+    });
   }
 }
-
 // ===== POST =====
 async function doPost(action,body) {
   const res = await fetch(`/${gameId}/${action}`,{
