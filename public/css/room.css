@@ -1,0 +1,70 @@
+/* 盤面 */
+#board table {
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+#board table td {
+  background: #228B22; /* 緑 */
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  border: 1px solid #000;
+  line-height: 40px;
+}
+
+/* 黒石（黒●） */
+#board .black {
+  color: black;
+  font-size: 52px;   /* さらに大きく */
+  line-height: 40px;
+}
+
+/* 白石（白●に黒縁取り） */
+#board .white {
+  color: white;
+  -webkit-text-stroke: 2px black; /* 黒縁 */
+  font-size: 52px;   /* さらに大きく */
+  line-height: 40px;
+}
+
+/* 合法手 (オレンジの小さい●) */
+#board .move {
+  color: orange;
+  font-size: 26px;   /* 大きめ（見やすく強調） */
+  line-height: 40px;
+}
+
+/* モーダル背景 */
+#modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); /* 黒スモーク */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 非表示用クラス（JSが使う） */
+.hidden {
+  display: none !important;
+}
+
+/* モーダル本体 */
+.modal-content {
+  background: white;   /* ウィンドウは白 */
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: black;
+  min-width: 200px;
+  font-size: 16px;     /* モーダル内は通常文字 */
+  line-height: normal;
+}
+
+#modal button {
+  margin-top: 10px;
+  padding: 6px 12px;
+}

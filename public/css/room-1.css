@@ -1,0 +1,64 @@
+/* 盤面 */
+table {
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+table td {
+  background: #228B22; /* 緑 */
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  border: 1px solid #000;
+}
+
+/* 石 */
+.stone {
+  border-radius: 50%;
+  width: 70%;
+  height: 70%;
+  margin: auto;
+}
+.black {
+  background: black;
+}
+.white {
+  background: white;
+  border: 1px solid black;
+}
+
+/* 合法手 (オレンジの小さい丸) */
+.move {
+  background: orange;
+  border-radius: 50%;
+  width: 40%;
+  height: 40%;
+  margin: auto;
+}
+
+/* モーダル背景 */
+#modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); /* 黒スモーク */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* モーダル本体 */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: black;
+  min-width: 200px;
+}
+
+#modal button {
+  margin-top: 10px;
+  padding: 6px 12px;
+}

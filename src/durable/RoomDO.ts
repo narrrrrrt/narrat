@@ -67,8 +67,10 @@ export class RoomDO {
           event: "leave",
           data: {
             status: this.room.status,
+            step: this.room.step,
             black: !!this.room.black,
             white: !!this.room.white,
+            board: this.room.boardData,
           },
         }); 
       }

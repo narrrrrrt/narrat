@@ -19,6 +19,8 @@ export function createSSE(manager: SSEManager, request: Request): Response {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
+      "X-Accel-Buffering": "no",
+      "Transfer-Encoding": "chunked",
     },
   });
 }
