@@ -12,7 +12,7 @@ table td {
   position: relative;
   border: 1px solid #000;
   font-size: 32px;   /* 石が丸く見える大きさに調整 */
-  line-height: 40px; /* 縦中央に配置 */
+  line-height: 40px; /* 縦中央 */
 }
 
 /* 黒石（そのまま黒●） */
@@ -20,18 +20,24 @@ table td {
   color: black;
 }
 
-/* 白石（白●に黒縁取り） */
+/* 白石（白塗りの正円＋黒縁取り） */
 .white {
-  color: white;
-  text-shadow:
-    -1px 0 black,
-     1px 0 black,
-     0 -1px black,
-     0  1px black,
-    -1px -1px black,
-    -1px  1px black,
-     1px -1px black,
-     1px  1px black;  /* 黒で縁取り */
+  position: relative;
+  color: transparent; /* ○文字は見せない */
+  z-index: 1;
+}
+.white::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;             /* セルに合わせて調整 */
+  height: 28px;
+  background: white;       /* 塗りつぶし */
+  border: 2px solid black; /* 黒縁 */
+  border-radius: 50%;      /* 正円 */
+  transform: translate(-50%, -50%);
+  z-index: -1;
 }
 
 /* 合法手 (オレンジの小さい●、60%) */

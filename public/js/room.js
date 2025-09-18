@@ -186,19 +186,18 @@ function log(msg) {
   // SSE
   const sse = new EventSource(`/${gameId}/sse`);
   
-  
   sse.addEventListener("init", e => {
     // 中身は空でも捨てずに読んでおく
-    log("init event received: " + e.data);
+    //log("init event received: " + e.data);
     doPost("join", { seat: seat });
   });
   sse.addEventListener("pulse", e => {
     // デバッグ用に表示してもいいし、無視してもいい
-    log("pulse event received");
+    //log("pulse event received");
   });
     // resetイベント
-    sse.addEventListener("reset", e => {
-    log("reset event received: " + e.data);
+  sse.addEventListener("reset", e => {
+    //log("reset event received: " + e.data);
     // 今回は描画処理はなし（サーバー側のデバッグ用フラッシュだから）
   });
   
