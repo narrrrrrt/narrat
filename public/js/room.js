@@ -133,6 +133,7 @@ async function doPost(action,body) {
 
 function scheduleRetry(data) {
   setTimeout(function check() {
+    log("retry: token=" + currentToken + " step=" + data.step);
     if (currentToken) {
       renderBoard(data);
       //currentStep = data.step;
@@ -142,6 +143,18 @@ function scheduleRetry(data) {
       scheduleRetry(data);
     }
   }, 200);
+}
+
+function log(msg) {
+  const logDiv = document.getElementById("debugLog") || (() => {
+    const d = document.createElement("div");
+    d.id = "debugLog";
+    d.style.whiteSpace = "pre";
+    d.style.fontSize = "12px";
+    document.body.appendChild(d);
+    return d;
+  })();
+  logDiv.textContent += msg + "\n";
 }
 
 
