@@ -111,7 +111,8 @@ function handleMove(hasMove, data) {
 
   // 自分のターンで合法手がない
   if (seat === data.status && !hasMove) {
-    if (lastPass) {
+    //if (lastPass) {
+    if (lastPass && lastPass !== seat) {
       // 連続パス → 終了
       endGame(flatBoard);
       lastPass = false;
