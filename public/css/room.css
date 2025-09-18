@@ -11,24 +11,31 @@ table td {
   vertical-align: middle;
   position: relative;
   border: 1px solid #000;
-  font-size: 28px;   /* 石を大きく表示 */
+  font-size: 28px;   /* 基本の石サイズ */
   line-height: 40px; /* 縦中央 */
 }
 
-/* 石（テキストで描画するスタイルに変更） */
+/* 黒石（テキスト"●"を黒塗りに） */
 .black {
-  color: black; 
-}
-.white {
-  color: white;
-  -webkit-text-stroke: 1px black; /* 白石の縁取り */
+  color: black;
 }
 
-/* 合法手 (オレンジの小さい丸をテキストで代用) */
+/* 白石（テキスト"○"を白で塗りつぶし円に見せる） */
+.white {
+  color: white; /* 文字自体は白 */
+  text-shadow: 0 0 0 black; /* 黒縁をつける */
+  background: white;        /* 塗りつぶし */
+  border-radius: 50%;
+  display: inline-block;
+  width: 70%;
+  height: 70%;
+}
+
+/* 合法手 (オレンジの小さい●、60%) */
 .move {
   color: orange;
-  font-size: 20px;
-  line-height: 40px;
+  font-size: 60%;    /* サイズ60% */
+  line-height: 40px; /* 中央に配置 */
 }
 
 /* モーダル背景 */
@@ -36,10 +43,15 @@ table td {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.5); /* 黒スモーク */
-  display: none;
+  display: flex;  /* デフォはflex表示 */
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+/* 非表示用クラス（JSが使う） */
+.hidden {
+  display: none !important;
 }
 
 /* モーダル本体 */
