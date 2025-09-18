@@ -202,7 +202,7 @@ function log(msg) {
   });
   
   sse.addEventListener("join",e=>{
-    log("join event received: " + e.data);
+    //log("join event received: " + e.data);
     const data=JSON.parse(e.data);
     //renderBoard(data);
     scheduleRetry(data);
