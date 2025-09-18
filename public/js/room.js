@@ -186,8 +186,10 @@ function scheduleRetry(data) {
     renderBoard(data);
     showModal(t("leave"),async()=>{
       //if (currentToken) await doPost("leave",{token:currentToken});
-      if (currentToken) await doPost("leave",{token:currentToken});
-        doPost("join",{seat:seat});
+      if (currentToken) {
+        await doPost("leave",{token:currentToken});
+        await doPost("join",{seat:seat});
+      } 
     });
   });
 
