@@ -29,7 +29,7 @@ table td {
 /* 合法手 (オレンジの小さい●、40%) */
 .move {
   color: orange;
-  font-size: 16px;   /* 小さめ */
+  font-size: 24px;   /* 小さめ */
   line-height: 40px;
 }
 

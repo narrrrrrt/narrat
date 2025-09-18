@@ -137,9 +137,13 @@ async function doPost(action,body) {
         //t("you_observer") + " (token=" + currentToken + ")";
 
       // ハートビート開始（最初のJoin時だけ）
-      if (!hbTimer) {
-        //hbTimer = setInterval(()=>doPost("hb", {token:currentToken}),1000);
-      }
+      hbTimer = setInterval(async () => {
+        try {
+          await doPost("hb", { token: currentToken });
+        } catch (e) {
+          log("hb failed: " + e);
+        }
+      }, 2500);
 
     } 
   } else if (json.error) {
