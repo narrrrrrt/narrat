@@ -185,6 +185,14 @@ function log(msg) {
 
   // SSE
   const sse = new EventSource(`/${gameId}/sse`);
+  
+  
+  sse.addEventListener("init", e => {
+    // 中身は空でも捨てずに読んでおく
+    log("init event received: " + e.data);
+  });
+  
+  
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
     //renderBoard(data);
