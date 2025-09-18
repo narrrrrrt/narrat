@@ -18,21 +18,22 @@ table td {
 /* 黒石（黒●） */
 .black {
   color: black;
+  font-size: 32px;
 }
 
 /* 白石（白●に黒縁取り） */
 .white {
   color: white;
   -webkit-text-stroke: 2px black; /* 黒縁 */
+  font-size: 32px;
 }
 
 /* 合法手 (オレンジの小さい●、40%) */
 .move {
   color: orange;
-  font-size: 24px;   /* 小さめ */
+  font-size: 16px;   /* 40%くらいに縮小 */
   line-height: 40px;
 }
-
 /* モーダル背景 */
 #modal {
   position: fixed;
