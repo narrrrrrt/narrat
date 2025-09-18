@@ -57,18 +57,19 @@ function renderBoard(data) {
     const tr = document.createElement("tr");
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
-      if (cell === "B") {
-        td.innerText = "●";
-        td.className = "black";
-      } else if (cell === "W") {
-        td.innerText = "○";
-        td.className = "white";
-      } else if (cell === "*" && showMoves) {
+      // 初期化
+      td.innerText = " ";
+      td.className = "";
+
+      // 候補手（合法手）
+      if (cell === "*" && showMoves) {
         td.innerText = "●";
         td.className = "move";
         hasMove = true;
-      } else {
-        td.innerText = " ";
+      } else if (cell !== "-") {
+        // 黒石 or 白石
+        td.innerText = "●";
+        td.className = (cell === "B") ? "black" : "white";
       }
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
