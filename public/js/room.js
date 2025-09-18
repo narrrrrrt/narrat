@@ -190,6 +190,7 @@ function log(msg) {
   sse.addEventListener("init", e => {
     // 中身は空でも捨てずに読んでおく
     log("init event received: " + e.data);
+    doPost("join", { seat: seat });
   });
   sse.addEventListener("pulse", e => {
     // デバッグ用に表示してもいいし、無視してもいい
@@ -226,5 +227,5 @@ function log(msg) {
   });
 
   // 自動 join
-  doPost("join",{seat:seat});
+  //doPost("join",{seat:seat});
 })();
