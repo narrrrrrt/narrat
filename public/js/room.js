@@ -130,10 +130,19 @@ async function doPost(action,body) {
   }
 }
 
-// ===== 初期化 =====
-//const params = new URLSearchParams(location.search);
-//const gameId = params.get("id") || "1";
-//seat = params.get("seat") || "observer"; 
+function scheduleRetry(data) {
+  setTimeout(function check() {
+    if (currentToken) {
+      renderBoard(data);
+      currentStep = data.step;
+      // 処理が終わったので何もしない（タイマーはここで終わる）
+    } else {
+      // まだ追いついてない → 同じ data を引数で再試行
+      scheduleRetry(data);
+    }
+  }, 200);
+}
+
 
 // ==== 即時実行で初期化 ====
 (async () => {
@@ -164,7 +173,8 @@ async function doPost(action,body) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    renderBoard(data);
+    //renderBoard(data);
+    scheduleRetry(data);
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
