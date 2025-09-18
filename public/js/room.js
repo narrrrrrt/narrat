@@ -98,7 +98,7 @@ function endGame(flatBoard) {
 function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
   const hasEmpty = /[-*]/.test(flatBoard);
-
+/*
   if (!hasMove) {
     if (!hasEmpty) {
       endGame(flatBoard);
@@ -108,6 +108,23 @@ function handleMove(hasMove,data) {
       });
     }
   }
+*/
+if (!hasMove) {
+  if (!hasEmpty) {
+    // 盤が埋まった
+    endGame(flatBoard);
+  } else if (seat === data.status) {
+    // このターンは打てない → パス
+    showModal(t("no_moves"), () => {
+      doPost("move", { x: 3, y: 3, token: currentToken }); // ダミーパス
+    });
+  }
+
+  // ★追加: 両者が打てない場合の終局判定
+  if (data.noMovesBlack && data.noMovesWhite) {
+    endGame(flatBoard);
+  }
+}
 }
 
 // ===== POST =====
@@ -124,8 +141,9 @@ async function doPost(action,body) {
       document.getElementById("seatInfo").innerText =
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
-        t("you_observer") + " (token=" + currentToken + ")";
-        //t("you_observer");
+        t("you_observer");
+        //t("you_observer") + " (token=" + currentToken + ")";
+
     } 
   } else if (json.error) {
     showModal(json.error);
