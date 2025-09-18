@@ -138,7 +138,7 @@ async function doPost(action,body) {
 
       // ハートビート開始（最初のJoin時だけ）
       if (!hbTimer) {
-        hbTimer = setInterval(()=>doPost("hb", {token:currentToken}),1000);
+        //hbTimer = setInterval(()=>doPost("hb", {token:currentToken}),1000);
       }
 
     } 
