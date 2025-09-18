@@ -6,6 +6,7 @@ let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
+let lastPass = false;  // 前のターンがパスだったかどうか
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
@@ -97,27 +98,35 @@ function endGame(flatBoard) {
 
 
 // ===== move 処理 =====
+
+
 function handleMove(hasMove, data) {
   const flatBoard = data.board.join("");
 
-  // 1. 両者とも合法手がない → 終了
-  if (!flatBoard.includes("*")) {
-    endGame(flatBoard);
-    return;
-  }
-
-  // 2. 盤面が完全に埋まっている（- も * も無い） → 終了
+  // 盤が完全に埋まっている → 終了
   if (!/[-*]/.test(flatBoard)) {
     endGame(flatBoard);
     return;
   }
 
-  // 3. 自分のターンで合法手がない → パス
-  if (!hasMove && seat === data.status) {
-    showModal(t("no_moves"), () => {
-      doPost("move", { x: 3, y: 3, token: currentToken });
-    });
+  // 自分のターンで合法手がない
+  if (seat === data.status && !hasMove) {
+    if (lastPass) {
+      // 連続パス → 終了
+      endGame(flatBoard);
+      lastPass = false;
+    } else {
+      // 1回目のパス
+      showModal(t("no_moves"), () => {
+        doPost("move", { x: 3, y: 3, token: currentToken }); // pass
+      });
+      lastPass = true;
+    }
+    return;
   }
+
+  // 普通に手を打てた場合はパスフラグをリセット
+  lastPass = false;
 }
 // ===== POST =====
 async function doPost(action,body) {
