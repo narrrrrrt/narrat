@@ -133,7 +133,7 @@ async function doPost(action,body) {
 
 function scheduleRetry(data) {
   setTimeout(function check() {
-    log("retry: token=" + currentToken + " step=" + data.step);
+    //log("retry: token=" + currentToken + " step=" + data.step);
     if (currentToken) {
       renderBoard(data);
       //currentStep = data.step;
