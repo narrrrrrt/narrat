@@ -11,24 +11,30 @@ table td {
   vertical-align: middle;
   position: relative;
   border: 1px solid #000;
-  font-size: 28px;   /* 石を大きく表示 */
-  line-height: 40px; /* 縦中央 */
 }
 
-/* 石（テキストで描画するスタイルに変更） */
+/* 石 */
+.stone {
+  border-radius: 50%;
+  width: 70%;
+  height: 70%;
+  margin: auto;
+}
 .black {
-  color: black; 
+  background: black;
 }
 .white {
-  color: white;
-  -webkit-text-stroke: 1px black; /* 白石の縁取り */
+  background: white;
+  border: 1px solid black;
 }
 
-/* 合法手 (オレンジの小さい丸をテキストで代用) */
+/* 合法手 (オレンジの小さい丸) */
 .move {
-  color: orange;
-  font-size: 20px;
-  line-height: 40px;
+  background: orange;
+  border-radius: 50%;
+  width: 40%;
+  height: 40%;
+  margin: auto;
 }
 
 /* モーダル背景 */
