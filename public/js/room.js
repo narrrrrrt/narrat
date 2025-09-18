@@ -192,11 +192,17 @@ function log(msg) {
     log("init event received: " + e.data);
   });
   sse.addEventListener("pulse", e => {
-  // デバッグ用に表示してもいいし、無視してもいい
+    // デバッグ用に表示してもいいし、無視してもいい
     log("pulse event received");
+  });
+    // resetイベント
+    sse.addEventListener("reset", e => {
+    log("reset event received: " + e.data);
+    // 今回は描画処理はなし（サーバー側のデバッグ用フラッシュだから）
   });
   
   sse.addEventListener("join",e=>{
+    log("join event received: " + e.data);
     const data=JSON.parse(e.data);
     //renderBoard(data);
     scheduleRetry(data);
