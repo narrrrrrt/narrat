@@ -95,23 +95,7 @@ function endGame(flatBoard) {
   showModal(msg);
 }
 
-// ===== move 処理 =====
-/*
-function handleMove(hasMove,data) {
-  const flatBoard = data.board.join("");
-  const hasEmpty = /[-*]/.test(flatBoard);
-  
-  if (!hasMove) {
-    if (!hasEmpty) {
-      endGame(flatBoard);
-    } else if (seat === data.status) {
-      showModal(t("no_moves"),()=>{
-        doPost("move",{x:3,y:3,token:currentToken});
-      });
-    }
-  }
-}
-*/
+
 // ===== move 処理 =====
 function handleMove(hasMove, data) {
   const flatBoard = data.board.join("");
@@ -151,6 +135,11 @@ async function doPost(action,body) {
         seat === "white" ? t("you_white") :
         t("you_observer");
         //t("you_observer") + " (token=" + currentToken + ")";
+
+      // ハートビート開始（最初のJoin時だけ）
+      if (!hbTimer) {
+        hbTimer = setInterval(()=>doPost("hb", {token:currentToken}),1000);
+      }
 
     } 
   } else if (json.error) {
@@ -198,16 +187,6 @@ function log(msg) {
   document.getElementById("lobbyBtn").onclick = async ()=>{
     if (currentToken) await doPost("leave",{token:currentToken});
     location.href="/";
-  };
-
-  // ハートビート
-  document.getElementById("hbStart").onclick = ()=>{
-    if (!currentToken) { showModal(t("need_join")); return; }
-    hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
-  };
-  document.getElementById("hbStop").onclick = ()=>{
-    clearInterval(hbTimer);
-    hbTimer=null;
   };
 
   // SSE
