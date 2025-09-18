@@ -134,7 +134,7 @@ function scheduleRetry(data) {
   setTimeout(function check() {
     if (currentToken) {
       renderBoard(data);
-      currentStep = data.step;
+      //currentStep = data.step;
       // 処理が終わったので何もしない（タイマーはここで終わる）
     } else {
       // まだ追いついてない → 同じ data を引数で再試行
