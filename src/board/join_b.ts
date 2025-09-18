@@ -47,9 +47,11 @@ export function join(_: Room, token?: string, seat?: Seat): JoinResult {
     // 1. 新規 join
     if (seat === "black" && !_.black) {
       _.black = finalToken;
+      _.step = 0;
       role = "black";
     } else if (seat === "white" && !_.white) {
       _.white = finalToken;
+      _.step = 0;
       role = "white";
     } else {
       _.observers.push(finalToken);
