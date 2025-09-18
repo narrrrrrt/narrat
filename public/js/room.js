@@ -95,10 +95,11 @@ function endGame(flatBoard) {
 }
 
 // ===== move 処理 =====
+/*
 function handleMove(hasMove,data) {
   const flatBoard = data.board.join("");
   const hasEmpty = /[-*]/.test(flatBoard);
-/*
+  
   if (!hasMove) {
     if (!hasEmpty) {
       endGame(flatBoard);
@@ -109,22 +110,28 @@ function handleMove(hasMove,data) {
     }
   }
 */
-if (!hasMove) {
-  if (!hasEmpty) {
-    // 盤が埋まった
+function handleMove(hasMove, data) {
+  const flatBoard = data.board.join("");
+  const hasStar = /\*/.test(flatBoard);
+  const hasEmpty = /-/.test(flatBoard);
+
+  if (!hasStar) {
+    // どちらのプレイヤーにも合法手なし → 終了
     endGame(flatBoard);
-  } else if (seat === data.status) {
-    // このターンは打てない → パス
-    showModal(t("no_moves"), () => {
-      doPost("move", { x: 3, y: 3, token: currentToken }); // ダミーパス
-    });
+    return;
   }
 
-  // ★追加: 両者が打てない場合の終局判定
-  if (data.noMovesBlack && data.noMovesWhite) {
-    endGame(flatBoard);
+  if (!hasMove) {
+    if (!hasEmpty) {
+      endGame(flatBoard);
+    } else if (seat === data.status) {
+      showModal(t("no_moves"), () => {
+        doPost("move", { x: 3, y: 3, token: currentToken }); // ダミーパス
+      });
+    }
   }
 }
+
 }
 
 // ===== POST =====
