@@ -81,11 +81,11 @@ export class Room {
   }
 
   // === 外出しメソッド呼び出し ===
-  join(token: string, seat: Seat) {
+  join(token?: string, seat?: Seat): JoinResult {
     return join(this, token, seat);
   }
 
-  move(x: number, y: number, token: string) {
+  move(x: number, y: number, token: string): MoveResult {
     return move(this, x, y, token);
   }
 

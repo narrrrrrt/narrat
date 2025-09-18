@@ -48,4 +48,10 @@ export interface MoveResult {
   reason?: "token_mismatch" | "illegal_pass" | "invalid_move";
 }}
 
+// ★ Join の結果を表す型
+export interface JoinResult {
+  role: Seat;     // 黒 / 白 / オブザーバー
+  token: string;  // セッションを識別するトークン
+}
+
 

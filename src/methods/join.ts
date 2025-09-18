@@ -1,49 +1,43 @@
-import { HandlerContext, MethodResult, SSEMessage, Seat } from "../core/Types";
-
-// ★ 1行関数で token 生成（join.ts 専用）
-function generateToken(): string {
-  return Math.random().toString(36).slice(2, 10); // 8文字英数字
-}
+import { HandlerContext, MethodResult, SSEMessage, JoinResult } from "../core/Types";
 
 export async function joinHandler(
   _: HandlerContext,
   params: Record<string, any>
 ): Promise<MethodResult> {
-  const { seat } = params as { seat: Seat };
+  const { token: givenToken, seat } = params as { token?: string; seat?: string };
 
-  // token を生成
-  const token: string = generateToken();
-
-  // ★ Room.join に渡して role を確定
-  const role: Seat = _.room.join(token, seat);
-  await _.room.save();
+  // ★ ルームに join を依頼（内部処理は Room 側）
+  const result: JoinResult = _.room.join(givenToken, seat);
 
   // ★ Activity 更新 & アラーム設定
-  if (_.room.updateActivity(token, "lu")) {
-    await _.state.storage.setAlarm(new Date(Date.now() + Number(_.env.HEARTBEAT_TIMEOUT)));
+  if (_.room.updateActivity(result.token, "lu")) {
+    await _.state.storage.setAlarm(
+      new Date(Date.now() + Number(_.env.HEARTBEAT_TIMEOUT))
+    );
   }
 
-  // broadcast は SSEMessage 型に統一
+  // ★ broadcast データ
   const broadcast: SSEMessage = {
     event: "join",
     data: {
-      status: _.room.status,   // 1. status
-      step: _.room.step,       // 2. step
-      role,                    // 3. role（join 時のみ）
-      black: !!_.room.black,   // 4. black occupancy
-      white: !!_.room.white,   // 5. white occupancy
-      board: _.room.boardData, // 6. board
+      status: _.room.status,
+      step: _.room.step,
+      role: result.role,
+      black: !!_.room.black,
+      white: !!_.room.white,
+      board: _.room.boardData,
     },
   };
 
+  // ★ レスポンス
   return {
     broadcast,
     response: {
-      ok: true as true,                // 1. ok
-      step: _.room.step as number,     // 2. step
-      error: undefined,                // 3. error（成功時は空）
-      role,                            // 4. role
-      token,                           // 5. token（join で払い出した）
+      ok: true as true,
+      step: _.room.step as number,
+      error: undefined,
+      role: result.role,
+      token: result.token,
     },
   } as MethodResult;
 }
