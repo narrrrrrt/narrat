@@ -191,7 +191,10 @@ function log(msg) {
     // 中身は空でも捨てずに読んでおく
     log("init event received: " + e.data);
   });
-  
+  sse.addEventListener("pulse", e => {
+  // デバッグ用に表示してもいいし、無視してもいい
+    log("pulse event received");
+  });
   
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
