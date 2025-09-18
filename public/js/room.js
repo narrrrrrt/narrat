@@ -1,6 +1,7 @@
 //let seat = "";
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
+let didInit = false;
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
@@ -189,7 +190,10 @@ function log(msg) {
   sse.addEventListener("init", e => {
     // 中身は空でも捨てずに読んでおく
     //log("init event received: " + e.data);
-    doPost("join", { seat: seat });
+    if (!didInit) {
+      didInit = true;
+      doPost("join", { seat: seat });
+    } 
   });
   sse.addEventListener("pulse", e => {
     // デバッグ用に表示してもいいし、無視してもいい
