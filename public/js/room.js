@@ -1,12 +1,10 @@
-// ===== グローバル =====
+//let seat = "";
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
-let currentStep = 0;
-let lastData = null;
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
@@ -15,7 +13,7 @@ async function loadI18n() {
 
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
-  if (!i18n["game_over"][lang]) lang = "en";
+  if (!i18n[lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
@@ -58,22 +56,19 @@ function renderBoard(data) {
     const tr = document.createElement("tr");
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
-
       if (cell === "B") {
-        const stone = document.createElement("div");
-        stone.className = "stone black";
-        td.appendChild(stone);
+        td.innerText = "●";
+        td.className = "black";
       } else if (cell === "W") {
-        const stone = document.createElement("div");
-        stone.className = "stone white";
-        td.appendChild(stone);
+        td.innerText = "○";
+        td.className = "white";
       } else if (cell === "*" && showMoves) {
-        const move = document.createElement("div");
-        move.className = "move";
-        td.appendChild(move);
+        td.innerText = "●";
+        td.className = "move";
         hasMove = true;
+      } else {
+        td.innerText = " ";
       }
-
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
         doPost("move",{x,y,token:currentToken});
@@ -125,35 +120,20 @@ async function doPost(action,body) {
     if (action==="join") {
       currentToken = json.token;
       seat = json.role;
-      currentStep = json.step;
-
       document.getElementById("seatInfo").innerText =
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
         t("you_observer");
-
-      // ハートビート開始（最初のJoin時だけ）
-      if (!hbTimer) {
-        hbTimer = setInterval(()=>doPost("hb",{token:currentToken}),1000);
-      }
-    }
+    } 
   } else if (json.error) {
     showModal(json.error);
   }
 }
 
-function scheduleRetry(data) {
-  setTimeout(function check() {
-    if (currentToken) {
-      renderBoard(data);
-      currentStep = data.step;
-      // 処理が終わったので何もしない（タイマーはここで終わる）
-    } else {
-      // まだ追いついてない → 同じ data を引数で再試行
-      scheduleRetry(data);
-    }
-  }, 200);
-}
+// ===== 初期化 =====
+//const params = new URLSearchParams(location.search);
+//const gameId = params.get("id") || "1";
+//seat = params.get("seat") || "observer"; 
 
 // ==== 即時実行で初期化 ====
 (async () => {
@@ -161,6 +141,7 @@ function scheduleRetry(data) {
 
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
+  document.getElementById("hbStart").innerText = t("hb_start");
   document.getElementById("hbStop").innerText  = t("hb_stop");
 
   // ロビーへ
@@ -169,7 +150,11 @@ function scheduleRetry(data) {
     location.href="/";
   };
 
-  // ハートビート停止
+  // ハートビート
+  document.getElementById("hbStart").onclick = ()=>{
+    if (!currentToken) { showModal(t("need_join")); return; }
+    hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
+  };
   document.getElementById("hbStop").onclick = ()=>{
     clearInterval(hbTimer);
     hbTimer=null;
@@ -179,22 +164,19 @@ function scheduleRetry(data) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    scheduleRetry(data);
+    renderBoard(data);
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    scheduleRetry(data);
+    const hasMove=renderBoard(data);
+    requestAnimationFrame(()=>handleMove(hasMove,data));
   });
   sse.addEventListener("leave",e=>{
     const data=JSON.parse(e.data);
-    scheduleRetry(data);
-
-    if (seat && data[seat]===true) {
-      showModal(t("leave"),async()=>{
-        if (currentToken) await doPost("leave",{token:currentToken});
-        doPost("join",{seat:seat});
-      });
-    }
+    renderBoard(data);
+    showModal(t("leave"),async()=>{
+      if (currentToken) await doPost("leave",{token:currentToken});
+    });
   });
 
   // 自動 join

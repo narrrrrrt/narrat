@@ -1,10 +1,12 @@
-//let seat = "";
+// ===== グローバル =====
 let seat = new URLSearchParams(location.search).get("seat") || "observer";
 const gameId = new URLSearchParams(location.search).get("id") || "1";
 let currentToken = null;
 let hbTimer = null;
 let i18n = {};
 let lang = "en";
+let currentStep = 0;
+let lastData = null;
 
 // ===== i18n 読み込み =====
 async function loadI18n() {
@@ -13,7 +15,7 @@ async function loadI18n() {
 
   const params = new URLSearchParams(location.search);
   lang = params.get("lang") || navigator.language.slice(0,2);
-  if (!i18n[lang]) lang = "en";
+  if (!i18n["game_over"][lang]) lang = "en";
 }
 
 function t(key, vars = {}) {
@@ -56,19 +58,22 @@ function renderBoard(data) {
     const tr = document.createElement("tr");
     row.split("").forEach((cell,x) => {
       const td = document.createElement("td");
+
       if (cell === "B") {
-        td.innerText = "●";
-        td.className = "black";
+        const stone = document.createElement("div");
+        stone.className = "stone black";
+        td.appendChild(stone);
       } else if (cell === "W") {
-        td.innerText = "○";
-        td.className = "white";
+        const stone = document.createElement("div");
+        stone.className = "stone white";
+        td.appendChild(stone);
       } else if (cell === "*" && showMoves) {
-        td.innerText = "●";
-        td.className = "move";
+        const move = document.createElement("div");
+        move.className = "move";
+        td.appendChild(move);
         hasMove = true;
-      } else {
-        td.innerText = " ";
       }
+
       td.onclick = () => {
         if (!currentToken) { showModal(t("need_join")); return; }
         doPost("move",{x,y,token:currentToken});
@@ -124,16 +129,22 @@ async function doPost(action,body) {
         seat === "black" ? t("you_black") :
         seat === "white" ? t("you_white") :
         t("you_observer");
-    } 
+
+      // ハートビート開始（最初のJoin時だけ）
+      if (!hbTimer) {
+        hbTimer = setInterval(()=>doPost("hb",{token:currentToken}),1000);
+      }
+
+      // joinレスポンスが勝ってたら描画
+      if (lastData && lastData.step >= currentStep) {
+        currentStep = lastData.step;
+        renderBoard(lastData);
+      }
+    }
   } else if (json.error) {
     showModal(json.error);
   }
 }
-
-// ===== 初期化 =====
-//const params = new URLSearchParams(location.search);
-//const gameId = params.get("id") || "1";
-//seat = params.get("seat") || "observer"; 
 
 // ==== 即時実行で初期化 ====
 (async () => {
@@ -141,7 +152,6 @@ async function doPost(action,body) {
 
   document.getElementById("title").innerText = t("title",{room:gameId});
   document.getElementById("lobbyBtn").innerText = t("lobby");
-  document.getElementById("hbStart").innerText = t("hb_start");
   document.getElementById("hbStop").innerText  = t("hb_stop");
 
   // ロビーへ
@@ -150,11 +160,7 @@ async function doPost(action,body) {
     location.href="/";
   };
 
-  // ハートビート
-  document.getElementById("hbStart").onclick = ()=>{
-    if (!currentToken) { showModal(t("need_join")); return; }
-    hbTimer=setInterval(()=>doPost("hb",{token:currentToken}),10000);
-  };
+  // ハートビート停止
   document.getElementById("hbStop").onclick = ()=>{
     clearInterval(hbTimer);
     hbTimer=null;
@@ -164,19 +170,37 @@ async function doPost(action,body) {
   const sse = new EventSource(`/${gameId}/sse`);
   sse.addEventListener("join",e=>{
     const data=JSON.parse(e.data);
-    renderBoard(data);
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      renderBoard(data);
+    } else {
+      lastData = data;
+    }
   });
   sse.addEventListener("move",e=>{
     const data=JSON.parse(e.data);
-    const hasMove=renderBoard(data);
-    requestAnimationFrame(()=>handleMove(hasMove,data));
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      const hasMove=renderBoard(data);
+      requestAnimationFrame(()=>handleMove(hasMove,data));
+    } else {
+      lastData = data;
+    }
   });
   sse.addEventListener("leave",e=>{
     const data=JSON.parse(e.data);
-    renderBoard(data);
-    showModal(t("leave"),async()=>{
-      if (currentToken) await doPost("leave",{token:currentToken});
-    });
+    if (data.step > currentStep) {
+      currentStep = data.step;
+      renderBoard(data);
+    } else {
+      lastData = data;
+    }
+    if (seat && data[seat]===true) {
+      showModal(t("leave"),async()=>{
+        if (currentToken) await doPost("leave",{token:currentToken});
+        doPost("join",{seat:seat});
+      });
+    }
   });
 
   // 自動 join
