@@ -245,7 +245,8 @@ function log(msg) {
     if (seat && data[seat]===true) {
       showModal(t("leave"),async()=>{
         if (currentToken) {
-          await doPost("join", { seat: seat, token: currentToken });
+          //await doPost("join", { seat: seat, token: currentToken });
+          await doPost("join", { token: currentToken });
         }
       });
     } 
