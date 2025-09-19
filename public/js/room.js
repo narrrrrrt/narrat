@@ -201,7 +201,6 @@ function log(msg) {
     if (currentToken) {
       await doPost("leave",{token:currentToken});
       sessionStorage.removeItem("token"); // ★ セッションをクリア
-      //currentToken = null;
     } 
     location.href="/";
   };

@@ -63,7 +63,7 @@ export function join(_: Room, token?: string, seat?: Seat): JoinResult {
   if (_.black && _.white) {
     _.status = "black";
     _.boardData = _.legalBoard("black");
-  } else if (_.status === "waiting") {
+  } else {
     _.boardData = _.defaultBoard();
   }
 
