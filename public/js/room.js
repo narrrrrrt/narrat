@@ -47,7 +47,8 @@ function renderBoard(data) {
     leave: t("leave")
   }[data.status] || "";
 
-  const showMoves = (seat === data.status);
+  //const showMoves = (seat === data.status);
+  const showMoves = (seat === "observer") || (seat === data.status);
   let hasMove = false;
 
   const boardDiv = document.getElementById("board");
