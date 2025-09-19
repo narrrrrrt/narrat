@@ -17,7 +17,7 @@ tag = "v1"
 new_sqlite_classes = ["RoomDO"]
 
 [vars]
-HEARTBEAT_TIMEOUT = "4000"     # ハートビート (ms)
+HEARTBEAT_TIMEOUT = "30000"     # ハートビート (ms)
 LASTUPDATE_TIMEOUT = "300000"  # ラストアップデート (ms)
 
 # Workers AI バインディング

@@ -153,7 +153,7 @@ async function doPost(action,body) {
         } catch (e) {
           log("hb failed: " + e);
         }
-      }, 2500);
+      }, 29500);
 
     } 
   } else if (json.error) {
@@ -239,8 +239,7 @@ function log(msg) {
     if (seat && data[seat]===true) {
       showModal(t("leave"),async()=>{
         if (currentToken) {
-          await doPost("leave",{token:currentToken});
-          await doPost("join",{seat:seat});
+          await doPost("join", { seat: seat, token: currentToken });
         }
       });
     } 
