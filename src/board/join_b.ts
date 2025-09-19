@@ -8,68 +8,75 @@ function generateToken(): string {
 
 export function join(_: Room, token?: string, seat?: Seat): JoinResult {
   let finalToken: string;
-  let role: Seat;
 
-  if (token) {
-    if (seat) {
-      // seat + token → リロード継続
-      if ((seat === "black" && _.black === token) ||
-          (seat === "white" && _.white === token)) {
-        role = seat;
-        finalToken = token;
-      } else {
-        // 不一致 → observer 新規
-        finalToken = generateToken();
-        _.observers.push(finalToken);
-        role = "observer";
-      }
+  // === リロード (seat + token 一致) ===
+  if (token && seat) {
+    if ((seat === "black" && _.black === token) ||
+        (seat === "white" && _.white === token)) {
+      // リロード → 状態はそのまま
+      return { role: seat, token };
     } else {
-      // token のみ → リセット
-      if (_.black === token) {
-        _.boardData = _.defaultBoard();
-        _.status = "waiting";
-        _.step = 0;
-        role = "black";
-        finalToken = token;
-      } else if (_.white === token) {
-        _.boardData = _.defaultBoard();
-        _.status = "waiting";
-        _.step = 0;
-        role = "white";
-        finalToken = token;
-      } else {
-        finalToken = generateToken();
-        _.observers.push(finalToken);
-        role = "observer";
-      }
+      // token と seat が不一致 → observer
+      finalToken = generateToken();
+      _.observers.push(finalToken);
+      return { role: "observer", token: finalToken };
     }
-  } else {
-    // 新規
-    if (seat === "black" && !_.black) {
-      finalToken = generateToken();
-      _.black = finalToken;
+  }
+
+  // === リセット (token のみ) ===
+  if (token && !seat) {
+    if (_.black === token) {
+      _.boardData = _.defaultBoard();
+      _.status = "waiting";
       _.step = 0;
-      role = "black";
-    } else if (seat === "white" && !_.white) {
-      finalToken = generateToken();
-      _.white = finalToken;
+      return { role: "black", token };
+    } else if (_.white === token) {
+      _.boardData = _.defaultBoard();
+      _.status = "waiting";
       _.step = 0;
-      role = "white";
+      return { role: "white", token };
     } else {
       finalToken = generateToken();
       _.observers.push(finalToken);
-      role = "observer";
+      return { role: "observer", token: finalToken };
     }
   }
 
-  // ステータス更新
-  if (_.black && _.white) {
-    _.status = "black";
-    _.boardData = _.legalBoard("black");
-  } else {
-    _.status = "waiting";
-    _.boardData = _.defaultBoard();
+  // === 新規 (seat のみ) ===
+  if (!token && seat) {
+    if (seat === "black" && !_.black) {
+      finalToken = generateToken();
+      _.black = finalToken;
+      _.step++;
+      if (_.black && _.white) {
+        _.status = "black";
+        _.boardData = _.legalBoard("black");
+      } else {
+        _.status = "waiting";
+        _.boardData = _.defaultBoard();
+      }
+      return { role: "black", token: finalToken };
+    } else if (seat === "white" && !_.white) {
+      finalToken = generateToken();
+      _.white = finalToken;
+      _.step++;
+      if (_.black && _.white) {
+        _.status = "black";
+        _.boardData = _.legalBoard("black");
+      } else {
+        _.status = "waiting";
+        _.boardData = _.defaultBoard();
+      }
+      return { role: "white", token: finalToken };
+    } else {
+      finalToken = generateToken();
+      _.observers.push(finalToken);
+      return { role: "observer", token: finalToken };
+    }
   }
 
-  return { role, token: finalToken };
+  // === デフォルト (fallback: seat/token 不明) ===
+  finalToken = generateToken();
+  _.observers.push(finalToken);
+  return { role: "observer", token: finalToken };
 }
