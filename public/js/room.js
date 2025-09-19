@@ -147,6 +147,7 @@ async function doPost(action,body) {
         t("you_observer");
         //t("you_observer") + " (token=" + currentToken + ")";
 
+      await doPost("hb", { token: currentToken });
       // ハートビート開始（最初のJoin時だけ）
       hbTimer = setInterval(async () => {
         try {
