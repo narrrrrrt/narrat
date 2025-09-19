@@ -138,6 +138,7 @@ async function doPost(action,body) {
   const json = await res.json();
   if (json.ok) {
     if (action==="join") {
+      sessionStorage.setItem("token", json.token);
       currentToken = json.token;
       seat = json.role;
       document.getElementById("seatInfo").innerText =
@@ -197,7 +198,11 @@ function log(msg) {
 
   // ロビーへ
   document.getElementById("lobbyBtn").onclick = async ()=>{
-    if (currentToken) await doPost("leave",{token:currentToken});
+    if (currentToken) {
+      await doPost("leave",{token:currentToken});
+      sessionStorage.removeItem("token"); // ★ セッションをクリア
+      currentToken = null;
+    } 
     location.href="/";
   };
 
@@ -209,7 +214,8 @@ function log(msg) {
     //log("init event received: " + e.data);
     if (!didInit) {
       didInit = true;
-      doPost("join", { seat: seat });
+      //doPost("join", { seat: seat });
+      doPost("join", { seat: seat, token: currentToken });
     } 
   });
   sse.addEventListener("pulse", e => {
@@ -244,7 +250,12 @@ function log(msg) {
       });
     } 
   });
-
+  
+  // ページ読み込み時
+  const savedToken = sessionStorage.getItem("token");
+  if (savedToken) {
+    currentToken = savedToken;
+  }
   // 自動 join
   //doPost("join",{seat:seat});
 })();
