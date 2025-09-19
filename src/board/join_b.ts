@@ -7,36 +7,36 @@ function generateToken(): string {
 }
 
 export function join(_: Room, token?: string, seat?: Seat): JoinResult {
-  let finalToken = token ?? generateToken();
+  let finalToken: string;
   let role: Seat;
 
   if (token) {
     if (seat) {
-      // 3. 継続 (リセット希望)
+      // seat + token → リロード継続
       if ((seat === "black" && _.black === token) ||
           (seat === "white" && _.white === token)) {
-        _.boardData = _.defaultBoard();
-        _.status = "waiting";
-        _.step = 0;
         role = seat;
-      } else if (seat === "black" && !_.black) {
-        _.black = finalToken;
-        role = "black";
-      } else if (seat === "white" && !_.white) {
-        _.white = finalToken;
-        role = "white";
+        finalToken = token;
       } else {
+        // 不一致 → observer 新規
+        finalToken = generateToken();
         _.observers.push(finalToken);
         role = "observer";
       }
     } else {
-      // 2. 継続 (リロード)
+      // token のみ → リセット
       if (_.black === token) {
+        _.boardData = _.defaultBoard();
+        _.status = "waiting";
+        _.step = 0;
         role = "black";
+        finalToken = token;
       } else if (_.white === token) {
+        _.boardData = _.defaultBoard();
+        _.status = "waiting";
+        _.step = 0;
         role = "white";
-      } else if (_.observers.includes(token)) {
-        role = "observer";
+        finalToken = token;
       } else {
         finalToken = generateToken();
         _.observers.push(finalToken);
@@ -44,16 +44,19 @@ export function join(_: Room, token?: string, seat?: Seat): JoinResult {
       }
     }
   } else {
-    // 1. 新規 join
+    // 新規
     if (seat === "black" && !_.black) {
+      finalToken = generateToken();
       _.black = finalToken;
       _.step = 0;
       role = "black";
     } else if (seat === "white" && !_.white) {
+      finalToken = generateToken();
       _.white = finalToken;
       _.step = 0;
       role = "white";
     } else {
+      finalToken = generateToken();
       _.observers.push(finalToken);
       role = "observer";
     }
@@ -64,6 +67,7 @@ export function join(_: Room, token?: string, seat?: Seat): JoinResult {
     _.status = "black";
     _.boardData = _.legalBoard("black");
   } else {
+    _.status = "waiting";
     _.boardData = _.defaultBoard();
   }
 
